@@ -10,10 +10,11 @@ typedef byte_t;
 class Disk {
 
 private:
-    
+    int used = 0;
+
     
 public:
     Disk(int size = DISK_SIZE);
     void allocate();
-    
+
 }
