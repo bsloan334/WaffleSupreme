@@ -1,3 +1,30 @@
+/************************************************************
+CPU Module
+
+Module 1 : DMA Channel
+	switch read/write
+		case 0
+		case 1
+	signal( go to Computer Only module )
+	
+
+Module 2 : Compute Only
+	Loop until requires resources or is preempted
+		Fetch instruction (critcal section: program must be loaded into ram)
+		Decode instruction
+		Increment PC (critical section: exclusive PC access req.)
+		Execute instruction (critical section: requires exclusive accessd to registers & I/O buffers)
+			Modifies 
+		Break if waiting or preempted
+			waiting - resource requested is not already available (usually 11 opcodes)
+			preempted - dispatcher has signaled CPU to stop using shared memory
+			
+			(if break, make sure PCB entry is complete)
+
+
+**************************************************************/
+
+
 #ifndef __CPU__
 #define __CPU__
 
@@ -66,10 +93,6 @@ namespace projos
 			
 			/*** Private Member Functions *******************************/
 			
-			void DMA();
-			// Preconditions:  Current instruction has been decoded and instr is I/O instr
-			// Postconditions: Processes I/O operations. When finished, calls signal
-			
 			int32_t Fetch(int32_t address);
 			// Preconditions:  address is an absolute address within program buffer bounds
 			// Postconditions: A copy of value stored at address has been returned
@@ -81,7 +104,12 @@ namespace projos
 			//					(NOTE: some of these will be 0 if not used
 			//					in instruction)
 			
-			void Execute(int32_t opcode);
+			void DMA();
+			// Preconditions:  Current instruction has been decoded and instr is I/O instr
+			// Postconditions: Processes I/O operations. When finished, calls signal
+			
+			
+			void Execute();
 			// Preconditions:  Opcode has been decoded from instruction
 			//				   Other relevant fields have been decoded from
 			//					 instruction and stored in private data fields
