@@ -1,0 +1,8 @@
+{
+   "files.associations": {
+      "__locale": "cpp",
+      "locale": "cpp",
+      "memory": "cpp",
+      "vector": "cpp"
+   }
+}
