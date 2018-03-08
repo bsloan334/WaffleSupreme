@@ -25,8 +25,8 @@ public:
     void Allocate(instruction_t data);
     
     //The index needs to be the location of the byte
-    byte_t ReadByte(size_t index);
-    instruction_t ReadInstruction(size_t index);
+    byte_t ReadByte(int index);
+    instruction_t ReadInstruction(int index);
     
     string GetStatus();
     size_t GetUsed() {return size;}
