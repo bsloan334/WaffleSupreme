@@ -27,7 +27,7 @@ void RAM::Allocate(instruction_t data, int index) {
 	Allocate(temp, index + 3);
 }
 
-instruction_t RAM::GetInstruction(size_t index) {
+instruction_t RAM::GetInstruction(int index) {
    instruction_t instruct = 0;
 	instruct |= ((instruction_t)storage[index+0]) << (8 * 3); // Shift 3 bytes
 	instruct |= ((instruction_t)storage[index+1]) << (8 * 2);
