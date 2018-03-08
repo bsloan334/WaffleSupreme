@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <vector>
 #include "disk.hpp"
 #include "types.hpp"
@@ -5,7 +6,7 @@
 using namespace std;
 
 void Disk::Allocate(byte_t data){
-    if (is_Full){
+    if (size == used){
        throw "The disk is full, try again";
     } else {
        disk[used] = data;

@@ -1,8 +1,8 @@
 #pragma once
-#include <CircularBuffer.hpp>
-#include <Cache.hpp>
-#include <Permissions.hpp>
-#include <Register.hpp> 
+#include "CircularBuffer.hpp"
+#include "Cache.hpp"
+#include "Permissions.hpp"
+#include "Register.hpp"
 
 
 #include <cstdlib>
@@ -17,7 +17,12 @@ using namespace std;
 class State
 {
 public:
-	State(int32_t pc, list<Register> registers, Permissions perm, Cache c, int32_t page) :
+	State()
+	{
+
+	}
+	State(int newState, int pc, list<Register> registers, Permissions perm, Cache c, int page) :
+		currentState(newState),
 		programCounter(pc),
 		stateRegisters(registers),
 		permissions(perm),
@@ -27,9 +32,10 @@ public:
 	
 	}
 private:
-	int32_t programCounter = 0;
+	int currentState;
+	int programCounter = 0;
 	list<Register> stateRegisters;
 	Permissions permissions;
 	Cache cache;
-	int32_t activePages = 0;
+	int activePages = 0;
 };

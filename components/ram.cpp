@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <string>
 #include "RAM.hpp"
 

@@ -7,7 +7,11 @@ using namespace std;
 class Accounts
 {
 public:
-	Accounts(int32_t cpuT, int32_t limit, int32_t delay, int32_t start, int32_t end, int32_t io) :
+	Accounts()
+	{
+
+	}
+	Accounts(int cpuT, int limit, int delay, int start, int end, int io) :
 		cpuTime(cpuT),
 		timeLimit(limit),
 		timeDelay(delay),
@@ -18,10 +22,10 @@ public:
 
 	}
 private: 
-	int32_t cpuTime;
-	int32_t timeLimit;
-	int32_t timeDelay;
-	int32_t startTime;
-	int32_t endTime;
-	int32_t ioTime;
+	int cpuTime;
+	int timeLimit;
+	int timeDelay;
+	int startTime;
+	int endTime;
+	int ioTime;
 };

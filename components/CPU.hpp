@@ -3,6 +3,7 @@
 #include <sstream>
 #include "Process.hpp"
 #include "RAM.hpp"
+#include "Register.hpp"
 #include "Types.hpp"
  
 /*** WARNING: Backdoor is OPEN! */
@@ -28,7 +29,10 @@ class CPU
 		//				   process state has been saved
 		
 		*/
-	
+		void AssignProcessData(Process *nextProcess, int programCounter, deque<Register*> *reg);
+		// Postcondition:   CPU Process* object set to new process ptr along
+		//					with programCounter and relevant registers
+
 		Process* GetCurrentProcess() const;
 		// Postcondition:	ptr to currently running process is returned
 	
@@ -48,7 +52,7 @@ class CPU
 		Process* process;			// pntr to process entry
 		RAM* ram;					// pntr to OS's RAM
 		int pc;						// program counter
-		instruction_t* registers;	// pntr to register array  /***** TO DO - MAKE 16 a Process Constant *****/
+		Register* registers;		// pntr to register array  /***** TO DO - MAKE 16 a Process Constant *****/
 		int outBuffer;				// offset of output buffer
 		int tmpBuffer;				// offset of temp buffer (chache)
 		int programBase;			// abs beginning address of program file

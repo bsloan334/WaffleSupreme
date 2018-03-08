@@ -10,7 +10,11 @@ using namespace std;
 class Schedule
 {
 public: 
-	Schedule(int32_t burst, int32_t p, string queue, int32_t slice, int32_t remain) :
+	Schedule()
+	{
+
+	}
+	Schedule(int burst, int p, string queue, int slice, int remain) :
 		burstTime(burst),
 		priority(p),
 		queueType(queue),
