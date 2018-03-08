@@ -29,7 +29,7 @@ void Disk::Allocate(instruction_t data) {
 	Allocate(temp);
 }
 
-instruction_t Disk::ReadInstruction(size_t index) {
+instruction_t Disk::ReadInstruction(int index) {
    instruction_t instruct = 0;
 	instruct |= (instruction_t)disk[index + 0] << (8*3); // 3 bytes
 	instruct |= (instruction_t)disk[index + 1] << (8*2);
