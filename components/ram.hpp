@@ -8,14 +8,14 @@
 
 using namespace std;
 
-class Ram {
+class RAM {
 
    private: 
       size_t size;
       vector<byte_t> storage;
 
    public:
-      Ram(size_t size = DEAFULT_RAM) : size(size), storage(size, 0) {}
+      RAM(size_t size = DEAFULT_RAM) : size(size), storage(size, 0) {}
 
       void Allocate(byte_t data, int index);
       void Allocate(instruction_t data, int index);
