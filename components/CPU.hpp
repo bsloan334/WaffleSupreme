@@ -17,8 +17,7 @@ class CPU
 		
 		/*** Public Member Functions ********************************/	
 		
-		/** void CPU::RunProcess( Process* p )
-		 **/
+		void CPU::RunProcess( Process* p ); // Dispatcher runs a process using this function
 		/*
 		// This is the control flow function of the cpu
 		// Preconditions:  process_state contains the process's current state
@@ -29,10 +28,6 @@ class CPU
 		//				   process state has been saved
 		
 		*/
-		/*****************************************************************/
-		/*** Private keyword removed to allow testing access**************/
-		/*** DO NOT FORGET TO CLOSE THIS BACKDOOR!!!!!!!!!! **************/
-		/*****************************************************************/
 	
 		Process* GetCurrentProcess() const;
 		// Postcondition:	ptr to currently running process is returned
