@@ -1,7 +1,7 @@
 #pragma once
 #include <deque>
 #include <vector>
-#include "types.hpp"
+#include "Types.hpp"
 
 //This makes the ram byte-addressable
 #define DEAFULT_RAM 1024 * 4
@@ -21,7 +21,7 @@ class RAM {
       void Allocate(instruction_t data, int index);
       size_t Size() { return size; }
 
-      instruction_t GetInstruction(size_t index);
+      instruction_t GetInstruction(int index);
 
       string GetStatus();
 
