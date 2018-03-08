@@ -1,9 +1,9 @@
 #include <string>
-#include "ram.hpp"
+#include "RAM.hpp"
 
 using namespace std;
 
-void Ram::Allocate(byte_t data, int index) {
+void RAM::Allocate(byte_t data, int index) {
    if (size > index) {
       storage.at(index) = data;
    } else {
@@ -11,7 +11,7 @@ void Ram::Allocate(byte_t data, int index) {
    }
 }
 
-void Ram::Allocate(instruction_t data, int index) {
+void RAM::Allocate(instruction_t data, int index) {
    byte_t temp = 0;
 
 	temp = byte_t((data & 0xFF000000) >> (8*3));
@@ -27,7 +27,7 @@ void Ram::Allocate(instruction_t data, int index) {
 	Allocate(temp, index + 3);
 }
 
-instruction_t Ram::GetInstruction(size_t index) {
+instruction_t RAM::GetInstruction(size_t index) {
    instruction_t instruct = 0;
 	instruct |= ((instruction_t)storage[index+0]) << (8 * 3); // Shift 3 bytes
 	instruct |= ((instruction_t)storage[index+1]) << (8 * 2);
@@ -38,8 +38,8 @@ instruction_t Ram::GetInstruction(size_t index) {
 
 }
 
-string Ram::GetStatus() {
-   return "Ram size: " + to_string(size);
+string RAM::GetStatus() {
+   return "RAM size: " + to_string(size);
 }
 
 
