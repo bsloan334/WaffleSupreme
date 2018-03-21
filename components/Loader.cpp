@@ -62,7 +62,7 @@ void Loader::LoadJobs(string jobSrcFile, PCBManager* pcb)
                 process->AssignOutputBase(outBufferBase);
                 process->AssignTempBase(tempBufferBase);
                 
-                pcb->AddProcess(process);
+                pcb->AddProcess(*process);
                 
             }
             else
