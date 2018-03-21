@@ -1,37 +1,40 @@
 #pragma once
-#include "Process.hpp"
-#include "types.hpp"
-#include "circularBuffer.hpp"
-#include "register.hpp"
 
-#include <cstdlib>
+#include "Process.hpp"
+#include "Types.hpp"
+
+#include <stdlib.h>
 #include <iostream>
-#include <deque>
-#include <cstdint>
+#include <list>
+#include <stdint.h>
 
 using namespace std;
 
 class PCBManager
 { 
-public:
-	PCBManager()
-	{
+    public:
+        PCBManager()
+        {
+            size = new int(0);
+            listHead = NULL;
+        }
 
-	}
-	~PCBManager()
-	{
+        ~PCBManager()
+        {
 
-	}
-	deque<Process*> PCB;
+        }
 
-	Process* GetPCBHead();
-	int GetSize();
-	Process* FindProcess(int index);
-	void AddProcess(Process newProcess);
-	//void RemoveProcess(Process target);
-	//void SortPCB(int schedulingType);
-private:
-	int size = 0;
-	Process* listHead;
+        Process* GetPCBHead();
+        void AddProcess(Process *newProcess);
+
+        //void RemoveProcess(Process target);
+        //void SortPCB(int schedulingType);
+
+    private:
+
+        list<Process> PCB;
+
+        int *size;
+        Process* listHead;
 };
 
