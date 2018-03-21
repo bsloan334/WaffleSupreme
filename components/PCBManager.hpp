@@ -27,16 +27,14 @@ class PCBManager
         Process* FindProcess(int index);
         Process* GetPCBHead();
         int GetSize();
-        void AddProcess(Process *newProcess);
-
-        //void RemoveProcess(Process target);
-        //void SortPCB(int schedulingType);
+        void AddProcess(Process newProcess);
+        void RemoveProcess(Process target);
 
     private:
 
         list<Process> PCB;
 
         int *size;
-        Process* listHead;
+        Process *listHead;
 };
 
