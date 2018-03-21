@@ -1,24 +1,32 @@
-#include "stdafx.h"
+#pragma once
+
 #include <vector>
-#include "disk.hpp"
-#include "types.hpp"
+
+#include "Disk.hpp"
+#include "Types.hpp"
 
 using namespace std;
 
-void Disk::Allocate(byte_t data){
-    if (size == used){
+int Disk::Allocate(byte_t data){
+    int address = -1;   // essentially NULL
+    
+    if (is_Full()){
        throw "The disk is full, try again";
     } else {
        disk[used] = data;
+       address = used;
        used++;
     }
+    
+    return address;
 }
 
-void Disk::Allocate(instruction_t data) {
+int Disk::Allocate(instruction_t data) {
    byte_t temp = 0;
+   int address = -1;    // essentially NULL
 
 	temp = byte_t((data & 0xFF000000) >> (8*3));
-	Allocate(temp);
+	address = Allocate(temp);
 
 	temp = byte_t((data & 0x00FF0000) >> (8*2));
 	Allocate(temp);
@@ -28,6 +36,8 @@ void Disk::Allocate(instruction_t data) {
 
 	temp = byte_t((data & 0x000000FF) >> (8*0));
 	Allocate(temp);
+    
+    return address;
 }
 
 instruction_t Disk::ReadInstruction(int index) {
