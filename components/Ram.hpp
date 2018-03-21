@@ -1,6 +1,7 @@
 #pragma once
-#include <deque>
+
 #include <vector>
+
 #include "Types.hpp"
 
 //This makes the ram byte-addressable
@@ -17,8 +18,8 @@ class RAM {
    public:
       RAM(size_t size = DEAFULT_RAM) : size(size), storage(size, 0) {}
 
-      void Allocate(byte_t data, int index);
-      void Allocate(instruction_t data, int index);
+      int Allocate(byte_t data, int index);
+      int Allocate(instruction_t data, int index);
       size_t Size() { return size; }
 
       instruction_t GetInstruction(int index);
