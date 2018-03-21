@@ -3,10 +3,10 @@
 #include "Process.hpp"
 #include "Types.hpp"
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 #include <list>
-#include <stdint.h>
+#include <cstdint>
 
 using namespace std;
 
@@ -24,7 +24,9 @@ class PCBManager
 
         }
 
+        Process* FindProcess(int index);
         Process* GetPCBHead();
+        int GetSize();
         void AddProcess(Process *newProcess);
 
         //void RemoveProcess(Process target);
