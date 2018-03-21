@@ -1,8 +1,9 @@
 #pragma once
+
 #include <vector>
-#include <deque>
 #include <string>
-#include "types.hpp"
+
+#include "Types.hpp"
 
 //This makes the disk byte-addressable
 #define DISK_SIZE 2048 * 4
@@ -21,8 +22,8 @@ private:
 public:
     Disk(int size = DISK_SIZE) : disk(size), used(0), size(size) {};
     bool is_Full() { return size == used; }  //Boolean to see if the disk is full
-    void Allocate(byte_t data); // Function for allocate 
-    void Allocate(instruction_t data);
+    int Allocate(byte_t data); // Function for allocate 
+    int Allocate(instruction_t data);
     
     //The index needs to be the location of the byte
     byte_t ReadByte(int index);
