@@ -21,8 +21,6 @@ class Loader
         void LoadJobs(const string job_src_file, PCBManager* pcb);
         // Postcondition:    Jobs from src file have been loaded into memory
         //                    and stored as Process entries in the PCB
-        instruction_t ConvertHexToDec(string hex);
-        // Postcondition:    returns hex str converted to dec
     
     private:
         
@@ -53,4 +51,7 @@ class Loader
         void StoreJob(list<string>* fileData);
         // Postcondition:   fileData stored in Disk (RAM)
         
+        instruction_t ConvertHexToDec(string hex);
+        // Postcondition:    returns hex str converted to dec
+    
 }; // end Loader
