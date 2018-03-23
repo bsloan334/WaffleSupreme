@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Loader.hpp"
 #include <iostream>
 #include <fstream>
@@ -10,11 +8,10 @@ using namespace std;
 
 string GetFilePath(const string& fileName); // function gets path of current working dir and appends fileName
 
-Loader::Loader(Disk* disk_init, PCBManager* pcb_init, queue<Process*>* newQueue_init)
+Loader::Loader(Disk* disk_init, PCBManager* pcb_init)
 {
     disk = disk_init;
 	pcb = pcb_init;
-	newQueue = newQueue_init;
 }
 
 void Loader::LoadJobs(string jobSrcFile)
@@ -73,10 +70,7 @@ void Loader::LoadJobs(string jobSrcFile)
 
 				process->SetFullProgramSize(tempBufferBase + tempBufferSize);
                 
-                pcb->AddProcess(*process);
-				newQueue->push(process);
-
-				break;  // TODO: Remove this. This stops Job Loading at first job.
+                pcb->AddProcess(process);
             }
             else
             {
