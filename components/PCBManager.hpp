@@ -15,7 +15,7 @@ class PCBManager
     public:
         PCBManager()
         {
-            size = new int(0);
+            size = 0;
             listHead = NULL;
         }
 
@@ -28,13 +28,15 @@ class PCBManager
         Process* GetPCBHead();
         int GetSize();
         void AddProcess(Process newProcess);
+
         void RemoveProcess(Process target);
+        void SortPCB(int schedulingType);
 
     private:
 
         list<Process> PCB;
 
-        int *size;
+        int size;
         Process *listHead;
 };
 
