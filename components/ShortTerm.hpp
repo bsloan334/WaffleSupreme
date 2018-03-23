@@ -1,6 +1,6 @@
 #pragma once
 #include <queue>
-#include "PCBManager.hpp"
+#include "Process.hpp"
 
 using namespace std;
 
@@ -8,15 +8,14 @@ class ShortTerm{
    public:
       
 
-      priority_queue<PCBManager*, deque<PCBManager*>> zeQueue;
+      priority_queue<Process*, deque<Process*>> zeQueue;
 
       ShortTerm();
       ~ShortTerm();
 
-      PCBManager* GetProcess();
-      void AddProcess(PCBManager* process);
+      Process* GetProcess();
+      void AddProcess(Process* process);
       void RemoveProcess();
       int Size();
       bool IsEmpty() { return zeQueue.empty; };
-
 };
