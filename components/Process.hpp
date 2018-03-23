@@ -25,10 +25,6 @@
 class Process
 {
     public:
-        Process()
-        {
-
-        }
         Process(int id, 
                 int instrSetSize, 
                 int priority, 
@@ -41,19 +37,39 @@ class Process
             registers = new instruction_t[NBR_OF_REGS]; // create empty register array
             currentState = NEW;
             programCounter = new int(0);
-	}
+
+			for (int i = 0; i < NBR_OF_REGS; i++)
+				*(registers + i) = 9;
+		}
 	
-	~Process() 
-	{
-		delete [] registers;                      // deallocate registers
-	    delete programCounter;
-	}
+		Process(const Process &p)
+		{
+			currentState = p.currentState;
+			programCounter = new int(*(p.programCounter));
+			registers = new instruction_t[NBR_OF_REGS];
+			programBase = p.programBase;
+			inputBase = p.inputBase;
+			outputBase = p.outputBase;
+			tempBase = p.tempBase;
+			job = Job(p.job);
+			data = Data(p.data);
+			fullProgramSize = p.fullProgramSize;
+
+			for (int i = 0; i < NBR_OF_REGS; i++)
+				*(registers + i) = *(p.registers + i);
+		}
+
+		~Process() 
+		{
+			delete [] registers;                      // deallocate registers
+			delete programCounter;
+		}
     
-	//int cpuid = 0;							// Integer index of assigned cpu
-	//State *state;									// State struct object to hold process environment at given time				
-	//Schedule sched;								// Schedule struct object to hold process time requirement and priority
-	//Accounts accounting;
-	//Process *Parent;
+		//int cpuid = 0;							// Integer index of assigned cpu
+		//State *state;									// State struct object to hold process environment at given time				
+		//Schedule sched;								// Schedule struct object to hold process time requirement and priority
+		//Accounts accounting;
+		//Process *Parent;
 
         int CheckState() { return currentState; }
 		void SetState(int st) {
@@ -88,6 +104,8 @@ class Process
         void AssignTempBase(int tBase) { tempBase = tBase; }
         void AssignInputBase(int iBase) { inputBase = iBase; }
 		void SetFullProgramSize(size_t size) { fullProgramSize = size; }
+
+
 
     private:
         instruction_t* registers;			// 1D array of registers (no buffers) for program data
