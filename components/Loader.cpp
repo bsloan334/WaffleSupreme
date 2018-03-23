@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Loader.hpp"
 #include <iostream>
 #include <fstream>
@@ -6,16 +8,19 @@
 
 using namespace std;
 
-Loader::Loader(Disk* disk_init)
+string GetFilePath(const string& fileName);
+
+Loader::Loader(Disk* disk_init, PCBManager* pcb_init, queue<Process*>* newQueue_init)
 {
     disk = disk_init;
+	pcb = pcb_init;
+	newQueue = newQueue_init;
 }
 
-void Loader::LoadJobs(string jobSrcFile, PCBManager* pcb)
+void Loader::LoadJobs(string jobSrcFile)
 // Postcondition:    Jobs from src file have been loaded into memory
 //                    and stored as Process entries in the PCB
 {
-
     // string to hold current data line
     string line;
     
@@ -23,19 +28,32 @@ void Loader::LoadJobs(string jobSrcFile, PCBManager* pcb)
     bool atProgramBase = false;
     
     // File reader for job file
-    ifstream jobInput;
+	ifstream jobInput;
+	jobInput.open(GetFilePath(jobSrcFile));
     
-    jobInput.open(jobSrcFile.c_str(), ios::in);
-    
-    while (!jobInput.eof())
-    {
+	cout << GetFilePath(jobSrcFile);
+
+	if (!jobInput.is_open())
+	{
+		cout << "Could not open " << jobSrcFile << ". Exiting..." << endl;
+		exit(EXIT_FAILURE);
+	}
+
+
+
+	int tempCount = 0;
+
+
+	while (!jobInput.eof())
+	{
         Process* process;
         
         // Get Job info
         getline(jobInput, line);    // First line in job contains job info
         
         cout << dec << "  line = " << line << endl;
-        
+		
+
         if (line.at(0) == '/')
 		{
 			if ( ( line.substr(0, 4) ).compare("// J") == 0 )
@@ -61,9 +79,13 @@ void Loader::LoadJobs(string jobSrcFile, PCBManager* pcb)
                 process->AssignInputBase(inBufferBase);
                 process->AssignOutputBase(outBufferBase);
                 process->AssignTempBase(tempBufferBase);
+
+				process->SetFullProgramSize(tempBufferBase + tempBufferSize);
                 
                 pcb->AddProcess(*process);
-                
+				newQueue->push(process);
+
+				break;  // TODO: Remove this
             }
             else
             {
@@ -79,9 +101,7 @@ void Loader::LoadJobs(string jobSrcFile, PCBManager* pcb)
             if(atProgramBase == true)
             {   
                 atProgramBase = false;
-                
                 programBase = a;
-                
             }        
             
         }
@@ -156,4 +176,12 @@ instruction_t Loader::ConvertHexToDec(const string hexString)
     ss >> instr;
     
     return instr;
+}
+
+
+string GetFilePath(const string& fileName) {
+	string path = __FILE__; //gets source code path, include file name
+	path = path.substr(0, 1 + path.find_last_of('\\')); //removes file name
+	path += fileName; //adds input file to path
+	return path;
 }
