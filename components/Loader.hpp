@@ -2,8 +2,7 @@
 
 #include "PCBManager.hpp"
 #include "Process.hpp"
-#include "RAM.hpp"         // TODO: Loader saves each process into Disk
-#include "Disk.hpp"        // [TEMP]
+#include "Disk.hpp"
 #include "Types.hpp"
 
 #include <vector>
