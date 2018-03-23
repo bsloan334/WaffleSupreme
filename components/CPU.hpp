@@ -105,7 +105,7 @@ class CPU
 			int a = outBuffer;
 			cout << "output buffer content ------------------" << endl;
 			while (a < tmpBuffer)
-			{	cout << "\t" << ram->GetInstruction(a) << endl;
+			{	cout << hex << "\t" << ram->GetInstruction(a*WORD) << endl;
 				a++;
 			}
 		}
@@ -113,9 +113,9 @@ class CPU
 		void print_temp()
 		{
 			int a = tmpBuffer;
-			cout << "temp buffer content ------------------ " << endl;
+			cout << hex << "temp buffer content (tempBuffer address = " << tmpBuffer << ") ------------------ " << endl;
 			while (a < process->GetFullProgramSize())
-			{	cout << "\t" << ram->GetInstruction(a) << endl;
+			{	cout << hex << "\t" << ram->GetInstruction(a*WORD) << endl;
 				a++;
 			}
 		}
