@@ -6,7 +6,7 @@
 #include "Types.hpp"
 
 //This makes the disk byte-addressable
-#define DISK_SIZE 2048 * 4
+#define DISK_SIZE 2048 * WORD
 
 using namespace std;
 
