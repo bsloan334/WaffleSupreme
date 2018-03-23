@@ -1,24 +1,17 @@
 #pragma once
-#include <PCBManager.hpp>
+
+#include "Process.hpp"
+#include "CPU.hpp"
 
 class Dispatcher
 {
 public: 
-	Dispatcher()
-	{
+	Dispatcher() {};
 
-	}
-
-	Dispatcher()
-	{
-
-	}
-
-	void LoadProcessToCPU(PCBManager* PCB, int PID, CPU targetCPU);
+	void LoadProcessToCPU(Process* p, CPU* targetCPU);
 	// Precondition:     PID is an existing ID of an instruction
 	//					 in the ready queue
 	// Postcondition:	 Dispatcher sets the process object for the
 	//					 CPU, along with program counter and relevant registers
-private:
 
 };
