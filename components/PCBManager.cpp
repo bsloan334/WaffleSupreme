@@ -19,14 +19,16 @@ void PCBManager::AddProcess(Process newProcess)
 
 void PCBManager::RemoveProcess(Process p)
 {
-	if(&p == listHead)
-	{	PCB.remove(p);
-	 	listHead = &PCB.front();
-	} else
+	if (&p == listHead)
+	{
+		PCB.remove(p);
+		listHead = &PCB.front();
+	}
+	else
 	{
 		PCB.remove(p);
 	}
-	
+
 	size = PCB.size();
 }
 
@@ -37,13 +39,15 @@ int PCBManager::GetSize()
 
 Process* PCBManager::FindProcess(int index)
 {
-	
+
 	if (size == 0)
 		return NULL;
-	
+
 	list<Process>::const_iterator itr = PCB.cbegin();
-	for(int i = 0; i < size; i++)
+	for (int i = 0; i < size; i++)
 		itr++;
-	
-	return &(*itr);
+
+	Process p = *itr;
+
+	return &p;
 }
