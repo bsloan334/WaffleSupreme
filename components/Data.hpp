@@ -13,11 +13,17 @@ public:
 		//outputBufSize(outputSize),
 		//tempBufSize(tempSize)
 	{
-        /** Not using this because the instructions assume cache is appended to instruction set - Ruth **/
         // Initialize Cache
 		inputBufSize = inputSize;
         outputBufSize = outputSize;
         tempBufSize = tempSize;
+	}
+
+	Data(const Data &d)
+	{
+		inputBufSize = d.inputBufSize;
+		outputBufSize = d.outputBufSize;
+		tempBufSize = d.tempBufSize;
 	}
 	
 	int GetInputBufferSize() { return inputBufSize; }
