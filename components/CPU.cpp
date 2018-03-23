@@ -46,32 +46,21 @@ bool CPU::RunProcess(Process* p)
 	/*** Critical Section: Run process ***/
 	while (processContinue)
 	{
-		instruction_t instr;
+		int instrAddress = programBase + *pc;		// Get address of current instr
+		instruction_t instr = Fetch(instrAddress);	// Fetch instruction from RAM
 
-		// Get address of current instr
-		int instrAddress = programBase + *pc;
-
-		// Fetch instruction from RAM
-		instr = Fetch(instrAddress);
-
-		// Decode instruction, updating instruction information fields
-		Decode(instr);
+		Decode(instr);								// Decode instruction, updating instruction information fields
 
 		cout << hex << "Current Instruction: " << instr << endl;
 		cout << "   opcode is " << OPCODES_STR[opcode] << endl;
 
 		// IO operation: run DMA channel
 		if (type == IO)
-		{
 			DMA();
-			output << " Executed as I/O instr." << endl;
-		}
+
 		// Execute instruction, using instruction information fields
 		else
-		{
 			Execute();
-			output << " Executed as Compute Only instr." << endl;
-		}
 
 		statusReport();
 	}
@@ -122,21 +111,16 @@ void CPU::DMA()
 		dst3 = registers + reg3;
 	}
 
-	if (type != IO)
-	{
-		output << ERR_IO_INSTR_MISMATCH << endl;
-		processContinue = false;
-		processComplete = false;
-		return;
-	}
-
 	switch (opcode)
 	{
 	case RD:    // read: src2 = value @ address or src2 = src1
 		if (address != 0)
-			*dst2 = Fetch(EffectiveAddress(address));
+			*dst1 = Fetch(EffectiveAddress(address));
 		else
-			*dst2 = src1;
+		{
+			*dst1 = Fetch(EffectiveAddress(src2));
+		}
+		
 		*pc += WORD;
 		break;
 
@@ -339,7 +323,7 @@ void CPU::Execute()
 			break;
 
 		case MOVI:        // move: copy data/address in src1 to src2
-			*dst2 = src1;
+			*dst2 = address;
 			*pc += WORD;
 			break;
 
