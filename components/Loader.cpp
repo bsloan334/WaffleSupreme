@@ -8,7 +8,7 @@
 
 using namespace std;
 
-string GetFilePath(const string& fileName);
+string GetFilePath(const string& fileName); // function gets path of current working dir and appends fileName
 
 Loader::Loader(Disk* disk_init, PCBManager* pcb_init, queue<Process*>* newQueue_init)
 {
@@ -21,17 +21,13 @@ void Loader::LoadJobs(string jobSrcFile)
 // Postcondition:    Jobs from src file have been loaded into memory
 //                    and stored as Process entries in the PCB
 {
-    // string to hold current data line
-    string line;
     
-    // Flags whether or not pogramBase is next instr to be inserted
-    bool atProgramBase = false;
-    
-    // File reader for job file
-	ifstream jobInput;
+    string line;				// string to hold current data line
+    bool atProgramBase = false;	// Flags whether or not pogramBase is next instr to be inserted
+	ifstream jobInput;			// File reader for job file
+
+	/*** Open Job file ***/
 	jobInput.open(GetFilePath(jobSrcFile));
-    
-	cout << GetFilePath(jobSrcFile);
 
 	if (!jobInput.is_open())
 	{
@@ -39,33 +35,28 @@ void Loader::LoadJobs(string jobSrcFile)
 		exit(EXIT_FAILURE);
 	}
 
-
-
-	int tempCount = 0;
-
-
+	/*** Parse Job File ***/
 	while (!jobInput.eof())
 	{
         Process* process;
-        
-        // Get Job info
+
         getline(jobInput, line);    // First line in job contains job info
         
         cout << dec << "  line = " << line << endl;
 		
-
+		/*** Case 1: Line is a section header. Parse header for process metadata ***/
         if (line.at(0) == '/')
 		{
-			if ( ( line.substr(0, 4) ).compare("// J") == 0 )
+			if ( ( line.substr(0, 4) ).compare("// J") == 0 )	// JOB section header
             {                          
                 ParseJob(line);
-                atProgramBase = true;       // indicate program head will be next instr inserted                
+                atProgramBase = true;            
             }
-            else if ( line.substr(0, 4).compare("// D") == 0)
+            else if ( line.substr(0, 4).compare("// D") == 0)	// Data section header
             {
                 ParseData(line);
             }
-            else if ( line.substr(0, 4).compare("// E") == 0)
+            else if ( line.substr(0, 4).compare("// E") == 0)	// END tag indicating end of process
             {
                 
                 process = new Process(jobID, programSize, priority,
@@ -85,7 +76,7 @@ void Loader::LoadJobs(string jobSrcFile)
                 pcb->AddProcess(*process);
 				newQueue->push(process);
 
-				break;  // TODO: Remove this
+				break;  // TODO: Remove this. This stops Job Loading at first job.
             }
             else
             {
@@ -93,11 +84,11 @@ void Loader::LoadJobs(string jobSrcFile)
             }
             
         }
+
+		/*** Case 2: Line is an instruction. Insert into next available space in Disk ***/
         else
         { 
-            // Store instruction in disk
             int a = disk->Allocate(ConvertHexToDec(line));
-            
             if(atProgramBase == true)
             {   
                 atProgramBase = false;
@@ -179,6 +170,7 @@ instruction_t Loader::ConvertHexToDec(const string hexString)
 }
 
 
+/** function gets path of current working dir and appends fileName **/
 string GetFilePath(const string& fileName) {
 	string path = __FILE__; //gets source code path, include file name
 	path = path.substr(0, 1 + path.find_last_of('\\')); //removes file name
