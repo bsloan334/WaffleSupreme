@@ -45,7 +45,7 @@ class Process
 	
 	~Process() 
 	{
-            delete [] registers;                      // deallocate registers
+		delete [] registers;                      // deallocate registers
 	    delete programCounter;
 	}
     
@@ -56,6 +56,12 @@ class Process
 	//Process *Parent;
 
         int CheckState() { return currentState; }
+		void SetState(int st) {
+			if (st == NEW || st == READY || st == WAITING || st == RUNNING || st == TERMINATED)
+				currentState = st;
+			else
+				std::cout << "State was not set. " << st << " is invalid state value." << std::endl;
+		}
     
         // Provides CPU direct read/write access to Registers and PC
         instruction_t* Registers() { return registers; }
@@ -67,10 +73,21 @@ class Process
         int GetOutputBase() { return outputBase; }
         int GetTempBase() { return tempBase; }
 
+		// Get fields from Job and Data
+		size_t GetProgramSize() { return job.GetProgramSize(); }
+		size_t GetInputSize() { return data.GetInputBufferSize(); }
+		size_t GetOutputSize() { return data.GetOutputBufferSize(); }
+		size_t GetTempSize() { return data.GetTempBufferSize(); }
+		size_t GetFullProgramSize() { return fullProgramSize; }
+		
+		// Other process properties
+		int GetID() { return job.GetProgramID(); }
+
         void SetProgramBase(int address) { programBase = address; }
         void AssignOutputBase(int oBase) { outputBase = oBase; }
         void AssignTempBase(int tBase) { tempBase = tBase; }
         void AssignInputBase(int iBase) { inputBase = iBase; }
+		void SetFullProgramSize(size_t size) { fullProgramSize = size; }
 
     private:
         instruction_t* registers;			// 1D array of registers (no buffers) for program data
@@ -85,4 +102,6 @@ class Process
         int inputBase = 0;                          // Offset from programBase
         int outputBase = 0;                         // Offset from programBase
         int tempBase = 0;                           // Offset from programBase
+
+		size_t fullProgramSize = 0;
 };
