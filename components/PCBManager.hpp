@@ -10,6 +10,15 @@
 
 using namespace std;
 
+//DOESNT HAVE TO GO HERE, AND FEEL FREE TO MODIFY IT
+enum resourceType {
+	NONE,
+    KEYBOARD,
+	DISK_IO,
+	SHAREDMEMORY,
+    STDOUT
+};
+
 class PCBManager
 { 
     public:

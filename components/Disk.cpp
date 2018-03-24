@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <deque>
 
 #include "Disk.hpp"
 #include "Types.hpp"
@@ -48,6 +49,22 @@ instruction_t Disk::ReadInstruction(int index) {
 	instruct |= (instruction_t)disk[index + 3] << (8*0);
 
 	return instruct;
+}
+
+deque<instruction_t> Disk::ReadInstructionChunk(size_t index, size_t size) {
+    deque<instruction_t> target;
+    instruction_t temp;
+    size_t targetClone = index;
+
+    for(; index < targetClone + size; index+=4) {
+        temp = 0;
+        temp |= ((instruction_t)disk[index + 0]) << (8*3);
+		temp |= ((instruction_t)disk[index + 1]) << (8*2);
+		temp |= ((instruction_t)disk[index + 2]) << (8*1);
+		temp |= ((instruction_t)disk[index + 3]) << (8*0);
+		target.push_back(temp);
+    }
+    return target;
 }
 
 string Disk::GetStatus() {

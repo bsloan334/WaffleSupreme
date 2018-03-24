@@ -37,6 +37,15 @@ int RAM::Allocate(instruction_t data, int index) {
     return address;
 }
 
+void Ram::AllocateChunk(int index, deque<instruction_t> instructions) {
+	size_t i = location;
+	while(instructions.size()) {
+		Allocate(instructions.front(), i);
+		i += 4;
+		instructions.pop_front;
+	}
+}
+
 instruction_t RAM::GetInstruction(int index) {
 	instruction_t instruct = 0;
 	instruct |= ((instruction_t)storage[index+0]) << (8 * 3); // Shift 3 bytes

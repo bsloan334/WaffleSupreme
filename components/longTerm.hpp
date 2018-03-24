@@ -1,5 +1,7 @@
 #pragma once
 #include "Process.hpp"
+#include "PCBManager.hpp"
+#include "disk.hpp"
 using namespace std;
 
 class LongTerm {
@@ -28,8 +30,10 @@ class LongTerm {
 
       size_t readyQueueSize;
       instruction_t maxAddress;
+      //Might not work because it is wantint to use the "used" from disk.hpp not make a new one ****************
       vector<UsedSpace> used;
       vector<BlankSpace> FindBlankSpaces();
 
       bool IsBlank(BlankSpace blank, vector<UsedSpace> used);
-}
+      bool CheckResource(resourceType rType);
+};

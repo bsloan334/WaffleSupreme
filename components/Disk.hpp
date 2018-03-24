@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <deque>
 
 #include "Types.hpp"
 
@@ -28,6 +29,7 @@ public:
     //The index needs to be the location of the byte
     byte_t ReadByte(int index);
     instruction_t ReadInstruction(int index);
+    deque<instruction_t> ReadInstructionChunk(size_t index, size_t size);
     
     string GetStatus();
     size_t GetUsed() {return size;}

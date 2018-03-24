@@ -21,6 +21,7 @@ class RAM {
 
       int Allocate(byte_t data, int index);
       int Allocate(instruction_t data, int index);
+      void AllocateChunk(size_t index, deque<instruction_t> instructions);
       size_t Size() { return size; }
 
       instruction_t GetInstruction(int index);
