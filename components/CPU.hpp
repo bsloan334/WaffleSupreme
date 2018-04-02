@@ -90,48 +90,12 @@ class CPU
         // Preconditions:  effective address in program section
         // Postconditions: effective address is returned
 
-		void print_state()
+
+		void printRegs()
 		{
-			cout << "state=" << process->CheckState() << endl;
-			cout << "pc=" << *pc << endl;
-			cout << "address=" << address << endl;
+			cout << "REGS:" << endl;
 			for (int i = 0; i < NBR_OF_REGS; i++)
-				cout << "reg[" << (i) << "]:" << *(registers + i) << endl;
-			cout << endl;
-		}
-
-		void print_output()
-		{
-			int a = outBuffer;
-			cout << "output buffer content ------------------" << endl;
-			while (a < tmpBuffer)
-			{	cout << hex << "\t" << ram->GetInstruction(a*WORD) << endl;
-				a++;
-			}
-		}
-
-		void print_temp()
-		{
-			int a = tmpBuffer;
-			cout << hex << "temp buffer content (tempBuffer address = " << tmpBuffer << ") ------------------ " << endl;
-			while (a < process->GetFullProgramSize())
-			{	cout << hex << "\t" << ram->GetInstruction(a*WORD) << endl;
-				a++;
-			}
-		}
-
-		void statusReport()
-		{
-			cout << "===== PID: " << process->GetID() << " =====" << endl;
-			print_state();
-			print_temp();
-		}
-
-		void finalReport()
-		{
-			cout << "===== PID: " << process->GetID() << " =====" << endl;
-			print_state();
-			print_output();
+				cout << hex << "reg " << i << " = " << *(registers + i) << endl;
 		}
 
 };
@@ -213,4 +177,4 @@ static const char* ERR_IO_INSTR_MISMATCH = "Error: Instruction ID-ed as Input/Ou
 static const char* ERR_INSTR_MISMATCH = "Error: Instruction did not match known instruction.";
 static const char* ERR_DIV_BY_0 = "Error: active process attempted division by 0, but the CPU knows better!";
 
-static const char* ERR_OUT_OF_BOUNDS = "Error: Program Counter set to address outside given process bounds.";
+static const char* ERR_OUT_OF_BOUNDS = "Error: Process tried to access address outside given process bounds.";
