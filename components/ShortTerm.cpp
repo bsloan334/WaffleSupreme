@@ -1,31 +1,24 @@
-#pragma once
-
 #include "ShortTerm.hpp"
+#include <queue>
 
 using namespace std;
 
-//Iniatilize the short term priority queue
-ShortTerm::ShortTerm() {
-}
+bool ShortTerm::RunNextProcess()
+{
+	Process* p;
+	Dispatcher dispatch;
+	bool processRun = false;
+	
+	if (!zeQueue->empty())
+	{
+		p = zeQueue->front();	// WARNING: Critical section not properly handled
+		zeQueue->pop();
+		dispatch.LoadProcessToCPU(p, targetCPU);
+		processRun = true;
+	
+	}
+	else
+		processRun = false;
 
-ShortTerm::~ShortTerm() {
-   while(zeQueue.empty == false) {
-      zeQueue.pop();
-   }
-}
-
-Process* ShortTerm::GetProcess() {
-   return zeQueue.top();
-}
-
-void ShortTerm::AddProcess(Process* process) {
-   zeQueue.push(process);
-}
-
-void ShortTerm::RemoveProcess() {
-   zeQueue.pop();
-}
-
-int ShortTerm::Size() {
-   return zeQueue.size();
+	return processRun;
 }
