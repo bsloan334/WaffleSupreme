@@ -9,64 +9,65 @@
 using namespace std;
 
 int Disk::Allocate(byte_t data){
-    int address = -1;   // essentially NULL
-    
-    if (is_Full()){
-       throw "The disk is full, try again";
-    } else {
-       disk[used] = data;
-       address = used;
-       used++;
-    }
-    
-    return address;
+	int address = -1;   // essentially NULL
+
+	if (is_Full()){
+		throw "The disk is full, try again";
+	}
+	else {
+		disk[used] = data;
+		address = used;
+		used++;
+	}
+
+	return address;
 }
 
 int Disk::Allocate(instruction_t data) {
-   byte_t temp = 0;
-   int address = -1;    // essentially NULL
+	byte_t temp = 0;
+	int address = -1;    // essentially NULL
 
-	temp = byte_t((data & 0xFF000000) >> (8*3));
+	temp = byte_t((data & 0xFF000000) >> (8 * 3));
 	address = Allocate(temp);
 
-	temp = byte_t((data & 0x00FF0000) >> (8*2));
+	temp = byte_t((data & 0x00FF0000) >> (8 * 2));
 	Allocate(temp);
 
-	temp = byte_t((data & 0x0000FF00) >> (8*1));
+	temp = byte_t((data & 0x0000FF00) >> (8 * 1));
 	Allocate(temp);
 
-	temp = byte_t((data & 0x000000FF) >> (8*0));
+	temp = byte_t((data & 0x000000FF) >> (8 * 0));
 	Allocate(temp);
-    
-    return address;
+
+	return address;
 }
 
 instruction_t Disk::ReadInstruction(int index) {
-   instruction_t instruct = 0;
-	instruct |= (instruction_t)disk[index + 0] << (8*3); // 3 bytes
-	instruct |= (instruction_t)disk[index + 1] << (8*2);
-	instruct |= (instruction_t)disk[index + 2] << (8*1);
-	instruct |= (instruction_t)disk[index + 3] << (8*0);
+	instruction_t instruct = 0;
+	instruct |= (instruction_t)disk[index + 0] << (8 * 3); // 3 bytes
+	instruct |= (instruction_t)disk[index + 1] << (8 * 2);
+	instruct |= (instruction_t)disk[index + 2] << (8 * 1);
+	instruct |= (instruction_t)disk[index + 3] << (8 * 0);
 
 	return instruct;
 }
 
-deque<instruction_t> Disk::ReadInstructionChunk(size_t index, size_t size) {
-    deque<instruction_t> target;
-    instruction_t temp;
-    size_t targetClone = index;
+queue<instruction_t> Disk::ReadInstructionChunk(size_t index, size_t size) {
+	queue<instruction_t> target;
+	instruction_t temp;
+	size_t targetClone = index;
 
-    for(; index < targetClone + size; index+=4) {
-        temp = 0;
-        temp |= ((instruction_t)disk[index + 0]) << (8*3);
-		temp |= ((instruction_t)disk[index + 1]) << (8*2);
-		temp |= ((instruction_t)disk[index + 2]) << (8*1);
-		temp |= ((instruction_t)disk[index + 3]) << (8*0);
-		target.push_back(temp);
-    }
-    return target;
+	for (; index < targetClone + size*WORD; index += 4) {
+		temp = 0;
+		temp |= ((instruction_t)disk[index + 0]) << (8 * 3);
+		temp |= ((instruction_t)disk[index + 1]) << (8 * 2);
+		temp |= ((instruction_t)disk[index + 2]) << (8 * 1);
+		temp |= ((instruction_t)disk[index + 3]) << (8 * 0);
+		target.push(temp);
+	}
+	return target;
 }
 
 string Disk::GetStatus() {
-   return "Disk size: " + to_string(size) + "\n Disk used: " + to_string(used);
+	return "Disk size: " + to_string(size) + "\n Disk used: " + to_string(used);
 }
