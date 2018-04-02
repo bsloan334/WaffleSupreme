@@ -8,10 +8,11 @@ using namespace std;
 
 string GetFilePath(const string& fileName); // function gets path of current working dir and appends fileName
 
-Loader::Loader(Disk* disk_init, PCBManager* pcb_init)
+Loader::Loader(Disk* disk_init, PCBManager* pcb_init, queue<Process*>* newQueue_init)
 {
     disk = disk_init;
 	pcb = pcb_init;
+	newQueue = newQueue_init;
 }
 
 void Loader::LoadJobs(string jobSrcFile)
@@ -53,25 +54,26 @@ void Loader::LoadJobs(string jobSrcFile)
             {
                 ParseData(line);
             }
-            else if ( line.substr(0, 4).compare("// E") == 0)	// END tag indicating end of process
-            {
-                
-                process = new Process(jobID, programSize, priority,
-                                    inBufferSize, outBufferSize, tempBufferSize);
-                
-                inBufferBase = programBase + programSize;
-                outBufferBase = inBufferBase + inBufferSize;
-                tempBufferBase = outBufferBase + outBufferSize;
-                
-                process->SetProgramBase(programBase);
-                process->AssignInputBase(inBufferBase);
-                process->AssignOutputBase(outBufferBase);
-                process->AssignTempBase(tempBufferBase);
+			else if (line.substr(0, 4).compare("// E") == 0)	// END tag indicating end of process
+			{
+
+				process = new Process(jobID, programSize, priority,
+					inBufferSize, outBufferSize, tempBufferSize);
+
+				inBufferBase = programBase + programSize;
+				outBufferBase = inBufferBase + inBufferSize;
+				tempBufferBase = outBufferBase + outBufferSize;
+
+				process->SetProgramBase(programBase);
+				process->AssignInputBase(inBufferBase);
+				process->AssignOutputBase(outBufferBase);
+				process->AssignTempBase(tempBufferBase);
 
 				process->SetFullProgramSize(tempBufferBase + tempBufferSize);
-                
-                pcb->AddProcess(process);
-            }
+
+				pcb->AddProcess(process);
+				newQueue->push(process);
+			}
             else
             {
                 ;// Indicate error
