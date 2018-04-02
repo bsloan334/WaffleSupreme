@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "Job.hpp"
@@ -9,17 +10,10 @@
 #include <list>
 #include <cstdint>
 
-
-/** Process state constants **/
-#define NEW        1
-#define READY      2
-#define RUNNING    3
-#define WAITING    4
-#define TERMINATED 5
-
 /** Other constants **/
 #define NBR_OF_REGS 16
 
+enum State{ NEW, READY, RUNNING, WAITING, TERMINATED };
 
 class Process
 {
@@ -36,9 +30,6 @@ class Process
             registers = new instruction_t[NBR_OF_REGS]; // create empty register array
             currentState = NEW;
             programCounter = new int(0);
-
-			for (int i = 0; i < NBR_OF_REGS; i++)
-				*(registers + i) = 9;
 		}
 	
 		Process(const Process &p)
@@ -84,6 +75,7 @@ class Process
 	
         // Set locations in Disk/RAM of different program sections
         int GetProgramBase() { return programBase; }
+		int GetProgramEnd() { return programBase + fullProgramSize; }
         int GetInputBase() { return inputBase; }
         int GetOutputBase() { return outputBase; }
         int GetTempBase() { return tempBase; }
@@ -93,16 +85,28 @@ class Process
 		size_t GetInputSize() { return data.GetInputBufferSize(); }
 		size_t GetOutputSize() { return data.GetOutputBufferSize(); }
 		size_t GetTempSize() { return data.GetTempBufferSize(); }
-		size_t GetFullProgramSize() { return fullProgramSize; }
+		size_t GetFullProgramSize() { return job.GetProgramSize() +
+					data.GetInputBufferSize() +
+					data.GetOutputBufferSize() +
+					data.GetTempBufferSize(); }
 		
 		// Other process properties
 		int GetID() { return job.GetProgramID(); }
+		int GetPriority() { return job.GetPriority(); }
 
         void SetProgramBase(int address) { programBase = address; }
         void AssignOutputBase(int oBase) { outputBase = oBase; }
         void AssignTempBase(int tBase) { tempBase = tBase; }
         void AssignInputBase(int iBase) { inputBase = iBase; }
 		void SetFullProgramSize(size_t size) { fullProgramSize = size; }
+
+		// Mass refactor functions
+		void RefactorSectionBases()
+		{
+			inputBase = programBase + job.GetProgramSize();
+			outputBase = inputBase + data.GetInputBufferSize();
+			tempBase = outputBase + data.GetOutputBufferSize();
+		}
 
 
 
