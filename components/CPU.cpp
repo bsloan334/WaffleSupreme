@@ -1,6 +1,5 @@
-#pragma once
-
 #include <cstdint>
+#include <cassert>
 
 #include "CPU.hpp"            // class header file
 
@@ -38,8 +37,7 @@ bool CPU::RunProcess(Process* p)
 	programBase = process->GetProgramBase();
 
 	/*** Critical Section: Entry Point ***/
-	while (process->CheckState() != READY);  // Make sure that process is in READY queue 
-	process->SetState(RUNNING);
+	while (process->CheckState() != RUNNING);  // Make sure that process is in RAM and marked RUNNING by long term
 
 	processContinue = true;
 
@@ -51,8 +49,9 @@ bool CPU::RunProcess(Process* p)
 
 		Decode(instr);								// Decode instruction, updating instruction information fields
 
-		cout << hex << "Current Instruction: " << instr << endl;
-		cout << "   opcode is " << OPCODES_STR[opcode] << endl;
+		printRegs();
+
+
 
 		// IO operation: run DMA channel
 		if (type == IO)
@@ -61,14 +60,20 @@ bool CPU::RunProcess(Process* p)
 		// Execute instruction, using instruction information fields
 		else
 			Execute();
-
-		statusReport();
 	}
 
-	finalReport();
 	cout << output.str();
 
-	process = NULL;
+	/*** Critical Section: Exit Point ***/
+	process->SetState(TERMINATED);
+
+	// Print process's cache here
+	cout << "Process " << p->GetID() << " output dump: " << endl;
+
+	for (int i = p->GetOutputBase(); i < p->GetProgramBase() + p->GetOutputSize(); i++)
+		cout << hex << ram->GetInstruction(i) << endl;
+
+	ram->Deallocate(process->GetProgramBase(), process->GetFullProgramSize());
 
 	return true;
 }
@@ -113,32 +118,32 @@ void CPU::DMA()
 
 	switch (opcode)
 	{
-	case RD:    // read: src2 = value @ address or src2 = src1
-		if (address != 0)
-			*dst1 = Fetch(EffectiveAddress(address));
-		else
-		{
-			*dst1 = Fetch(EffectiveAddress(src2));
-		}
+		case RD:    // read: src2 = value @ address or src2 = src1
+			if (address != 0)
+				*dst1 = Fetch(EffectiveAddress(address));
+			else
+			{
+				*dst1 = Fetch(EffectiveAddress(src2));
+			}
 		
-		*pc += WORD;
-		break;
+			*pc += WORD;
+			break;
 
-	case WR:    // write: value @ address = src2 or reg1 = src2
-		//   constraint: address limited to temp buffer or output buffer
+		case WR:    // write: value @ address = src2 or reg1 = src2
+			//   constraint: address limited to temp buffer or output buffer
 
-		if (address != 0) // case 1: address field contains output dest
-			ram->Allocate(src1, EffectiveAddress(address));
+			if (address != 0) // case 1: address field contains output dest
+				ram->Allocate(src1, EffectiveAddress(address));
 
-		else // case 2: reg2 contains output dest
-			ram->Allocate(src1, EffectiveAddress(src2));
-		*pc += WORD;
-		break;
+			else // case 2: reg2 contains output dest
+				ram->Allocate(src1, EffectiveAddress(src2));
+			*pc += WORD;
+			break;
 
-	default:
-		output << ERR_IO_INSTR_MISMATCH << endl;
-		processContinue = false;
-		processComplete = false;
+		default:
+			output << ERR_IO_INSTR_MISMATCH << endl;
+			processContinue = false;
+			processComplete = false;
 	}
 }
 
@@ -147,7 +152,14 @@ instruction_t CPU::Fetch(int address)
 //                   section_id is one of the program section types
 // Postconditions: A copy of value stored at address has been returned
 {
-	// TODO: Make sure that data requested is within process section (buffer)
+	if (address < programBase ||
+		address >(programBase + process->GetFullProgramSize()*WORD))
+	{
+		output << ERR_OUT_OF_BOUNDS << endl;
+		processContinue = false;
+		processComplete = false;
+	}
+
 	return ram->GetInstruction(address);
 }
 
@@ -456,5 +468,11 @@ int CPU::EffectiveAddress(int logicalAddress)
 // Preconditions:  effective address in program section
 // Postconditions: effective address is returned
 {
-	return programBase + logicalAddress;
+	int effAddress = programBase + logicalAddress;
+
+	// Check precondition
+	assert(effAddress < process->GetProgramBase() ||
+		effAddress >= process->GetProgramBase() + process->GetFullProgramSize());
+
+	return effAddress;
 }
