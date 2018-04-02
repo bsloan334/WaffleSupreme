@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <string>
-#include <deque>
+#include <queue>
 
 #include "Types.hpp"
 
@@ -15,24 +15,24 @@ class Disk {
 
 private:
 
-    size_t used; // Variable for holding how much space has been used
-    vector<byte_t> disk; 
-    size_t size;
-    
-    
+	size_t used; // Variable for holding how much space has been used
+	vector<byte_t> disk;
+	size_t size;
+
+
 public:
-    Disk(int size = DISK_SIZE) : disk(size), used(0), size(size) {};
-    bool is_Full() { return size == used; }  //Boolean to see if the disk is full
-    int Allocate(byte_t data); // Function for allocate 
-    int Allocate(instruction_t data);
-    
-    //The index needs to be the location of the byte
-    byte_t ReadByte(int index);
-    instruction_t ReadInstruction(int index);
-    deque<instruction_t> ReadInstructionChunk(size_t index, size_t size);
-    
-    string GetStatus();
-    size_t GetUsed() {return size;}
-    
+	Disk(int size = DISK_SIZE) : disk(size), used(0), size(size) {};
+	bool is_Full() { return size == used; }  //Boolean to see if the disk is full
+	int Allocate(byte_t data); // Function for allocate 
+	int Allocate(instruction_t data);
+
+	//The index needs to be the location of the byte
+	byte_t ReadByte(int index);
+	instruction_t ReadInstruction(int index);
+	queue<instruction_t> ReadInstructionChunk(size_t index, size_t size);
+
+	string GetStatus();
+	size_t GetUsed() { return size; }
+
 
 };
