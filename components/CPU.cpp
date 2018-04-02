@@ -70,7 +70,7 @@ bool CPU::RunProcess(Process* p)
 	// Print process's cache here
 	cout << "Process " << p->GetID() << " output dump: " << endl;
 
-	for (int i = p->GetOutputBase(); i < p->GetOutputBase() + p->GetOutputSize(); i++)
+	for (int i = p->GetOutputBase(); i < p->GetOutputBase() + p->GetOutputSize(); i+=WORD)
 		cout << hex << ram->GetInstruction(i) << endl;
 
 	ram->Deallocate(process->GetProgramBase(), process->GetFullProgramSize());
