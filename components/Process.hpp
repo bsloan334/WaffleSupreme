@@ -100,10 +100,10 @@ class Process
         Data data;
     
         int currentState;                             // By default, state is NEW
-        b_address_t* programCounter;                          // Integer offset from programBase
+        b_address_t* programCounter;                  // Integer offset from programBase
     
 		
-        b_address_t programBase = 0;                        // Absolute address in RAM of program start
+        b_address_t programBase = 0;                // Absolute address in RAM of program start
 		/*
 		int inputBase = 0;                          // Offset from programBase
         int outputBase = 0;                         // Offset from programBase
