@@ -20,9 +20,9 @@ class RAM {
 
 public:
 
-	struct Section {		// A section of memory marked either as used or free
-		int first;
-		int last;
+	struct Section {	// A section of memory marked either as used or free (addressed as instruction)
+		i_address_t first;
+		i_address_t last;
 		bool status;
 		int pid;			// (only set if status = FLAGGED)
 	};
@@ -36,21 +36,21 @@ public:
 		blankSpaces.push_back(s);
 	}
 
-	int Allocate(byte_t data, int index);
-	int Allocate(instruction_t data, int index);
-	int AllocateChunk(queue<instruction_t>* instructions, int pid); // WARNING: This will "spin" until there is room in RAM to put it
+	b_address_t Allocate(byte_t data, b_address_t index);
+	b_address_t Allocate(instruction_t data, b_address_t index);
+	b_address_t AllocateChunk(queue<instruction_t>* instructions, int pid); // WARNING: This will "spin" until there is room in RAM to put it
 
-	void Deallocate(int startIndex, size_t length);	// dealloc instructions starting at index
+	void Deallocate(b_address_t start, b_size_t length);	// dealloc instructions starting at index
 	// startIndex and length are both byte addresses (not instruction address)
 
-	size_t Size() { return size; }
-	instruction_t GetInstruction(int index);
+	b_size_t Size() { return size; }
+	instruction_t GetInstruction(b_address_t index);
 	string GetStatus();
 
 	Section* FirstAvailableSection(size_t instrNbr);
 
 private:
-	size_t size;
+	b_size_t size;
 	vector<byte_t> storage;
 	vector<Section*> blankSpaces;
 };
