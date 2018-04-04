@@ -15,24 +15,24 @@ class Disk {
 
 private:
 
-	size_t used; // Variable for holding how much space has been used
+	b_size_t used; // Variable for holding how much space has been used
 	vector<byte_t> disk;
-	size_t size;
+	b_size_t size;
 
 
 public:
 	Disk(int size = DISK_SIZE) : disk(size), used(0), size(size) {};
 	bool is_Full() { return size == used; }  //Boolean to see if the disk is full
-	int Allocate(byte_t data); // Function for allocate 
-	int Allocate(instruction_t data);
+	b_address_t Allocate(byte_t data); // Function for allocate 
+	b_address_t Allocate(instruction_t data);
 
 	//The index needs to be the location of the byte
-	byte_t ReadByte(int index);
-	instruction_t ReadInstruction(int index);
-	queue<instruction_t> ReadInstructionChunk(size_t index, size_t size);
+	byte_t ReadByte(b_address_t index);
+	instruction_t ReadInstruction(b_address_t index);
+	queue<instruction_t> ReadInstructionChunk(b_address_t index, i_size_t size);
 
 	string GetStatus();
-	size_t GetUsed() { return size; }
+	b_size_t GetUsed() { return size; }
 
 
 };
