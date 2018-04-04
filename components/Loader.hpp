@@ -34,19 +34,19 @@ class Loader
         
         // Information extracted from Job section
         int jobID;
-        size_t programSize;
+        i_size_t programSize;
         int priority;
         
         // Information extracted from Data section
-        size_t inBufferSize;
-        size_t outBufferSize;
-        size_t tempBufferSize;
+        i_size_t inBufferSize;
+        i_size_t outBufferSize;
+        i_size_t tempBufferSize;
         
         // Information saved when process is stored in Disk [TEMP: RAM]
-        int programBase;
-        int inBufferBase;   // Derived
-        int outBufferBase;  // Derived
-        int tempBufferBase; // Derived
+        b_address_t programBase;
+        b_address_t inBufferBase;   // Derived from program base
+        b_address_t outBufferBase;  // Derived from program base
+        b_address_t tempBufferBase; // Derived from program base
         
         void ParseJob(string line);
         // Postcondition:    jobID, programSize, and priority set
