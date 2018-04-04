@@ -30,28 +30,32 @@ bool CPU::RunProcess(Process* p)
 	output.str("");                            // clear output stream
 
 	process = p;
-	pc = process->ProgramCounter();
 	registers = process->Registers();
-	outBuffer = process->GetOutputBase();
-	tmpBuffer = process->GetTempBase();
-	programBase = process->GetProgramBase();
+	pc = process->ProgramCounter();				// Logical byte address
+	outBufferBase = process->GetOutputBase();	// Absolute byte address
+	tmpBufferBase = process->GetTempBase();		// Absolute byte address
+	programBase = process->GetProgramBase();	// Absolute byte address
 
 	/*** Critical Section: Entry Point ***/
 	while (process->CheckState() != RUNNING);  // Make sure that process is in RAM and marked RUNNING by long term
 
 	processContinue = true;
 
+
+	cout << "Program base is " << programBase << endl;
+	cout << "Output base is " << outBufferBase << endl;
+
 	/*** Critical Section: Run process ***/
 	while (processContinue)
 	{
-		int instrAddress = programBase + *pc;		// Get address of current instr
-		instruction_t instr = Fetch(instrAddress);	// Fetch instruction from RAM
+		b_address_t instrAddress = programBase + *pc;	// Get address of current instr
+		instruction_t instr = Fetch(instrAddress);		// Fetch instruction from RAM
 
 		Decode(instr);								// Decode instruction, updating instruction information fields
 
 		printRegs();
 
-
+		
 
 		// IO operation: run DMA channel
 		if (type == IO)
@@ -67,13 +71,13 @@ bool CPU::RunProcess(Process* p)
 	/*** Critical Section: Exit Point ***/
 	process->SetState(TERMINATED);
 
-	// Print process's cache here
+	// Print process's output cache here
 	cout << "Process " << p->GetID() << " output dump: " << endl;
 
-	for (int i = p->GetOutputBase(); i < p->GetOutputBase() + p->GetOutputSize(); i+=WORD)
+	for (int i = p->GetOutputBase(); i < p->GetOutputBase() + p->GetOutputSize()*WORD; i+=WORD)
 		cout << hex << ram->GetInstruction(i) << endl;
 
-	ram->Deallocate(process->GetProgramBase(), process->GetFullProgramSize());
+	ram->Deallocate(process->GetProgramBase(), process->GetFullProgramSize()*WORD);
 
 	return true;
 }
@@ -87,7 +91,7 @@ Process* CPU::GetCurrentProcess() const
 /*** Private Member Functions *******************************/
 
 void CPU::DMA()
-// Preconditions:  Current instruction has been decoded and instr is I/O instr
+// Preconditions : Current instruction has been decoded and instr is I/O instr
 // Postconditions: Processes I/O operations. When finished, calls signal
 {
 
@@ -147,13 +151,13 @@ void CPU::DMA()
 	}
 }
 
-instruction_t CPU::Fetch(int address)
+instruction_t CPU::Fetch(b_address_t address)
 // Preconditions:  Address is an absolute address with program buffer bounds
 //                   section_id is one of the program section types
 // Postconditions: A copy of value stored at address has been returned
 {
 	if (address < programBase ||
-		address >(programBase + process->GetFullProgramSize()*WORD))
+		address > (programBase + process->GetFullProgramSize()*WORD))
 	{
 		output << ERR_OUT_OF_BOUNDS << endl;
 		processContinue = false;
@@ -454,17 +458,9 @@ void CPU::Execute()
 		processContinue = false;
 		processComplete = false;
 	}
-
-	/*** Exit process if pc is outside program bounds to prevent writing outside file ***/
-	if (*pc < programBase || *pc >(tmpBuffer + process->GetFullProgramSize()))
-	{
-		output << ERR_OUT_OF_BOUNDS << endl;
-		processContinue = false;
-		processComplete = false;
-	}
 }
 
-int CPU::EffectiveAddress(int logicalAddress)
+b_address_t CPU::EffectiveAddress(b_address_t logicalAddress)
 // Preconditions:  effective address in program section
 // Postconditions: effective address is returned
 {
