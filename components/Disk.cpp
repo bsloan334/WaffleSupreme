@@ -8,8 +8,8 @@
 
 using namespace std;
 
-int Disk::Allocate(byte_t data){
-	int address = -1;   // essentially NULL
+b_address_t Disk::Allocate(byte_t data){
+	b_address_t address = NULL_ADDRESS;
 
 	if (is_Full()){
 		throw "The disk is full, try again";
@@ -23,9 +23,9 @@ int Disk::Allocate(byte_t data){
 	return address;
 }
 
-int Disk::Allocate(instruction_t data) {
+b_address_t Disk::Allocate(instruction_t data) {
 	byte_t temp = 0;
-	int address = -1;    // essentially NULL
+	b_address_t address = NULL_ADDRESS;
 
 	temp = byte_t((data & 0xFF000000) >> (8 * 3));
 	address = Allocate(temp);
@@ -42,7 +42,7 @@ int Disk::Allocate(instruction_t data) {
 	return address;
 }
 
-instruction_t Disk::ReadInstruction(int index) {
+instruction_t Disk::ReadInstruction(b_address_t index) {
 	instruction_t instruct = 0;
 	instruct |= (instruction_t)disk[index + 0] << (8 * 3); // 3 bytes
 	instruct |= (instruction_t)disk[index + 1] << (8 * 2);
@@ -52,12 +52,12 @@ instruction_t Disk::ReadInstruction(int index) {
 	return instruct;
 }
 
-queue<instruction_t> Disk::ReadInstructionChunk(size_t index, size_t size) {
+queue<instruction_t> Disk::ReadInstructionChunk(b_address_t index, i_size_t size) {
 	queue<instruction_t> target;
 	instruction_t temp;
-	size_t targetClone = index;
+	b_address_t targetClone = index;
 
-	for (; index < targetClone + size*WORD; index += 4) {
+	for (; index < targetClone + size*WORD; index += WORD) {
 		temp = 0;
 		temp |= ((instruction_t)disk[index + 0]) << (8 * 3);
 		temp |= ((instruction_t)disk[index + 1]) << (8 * 2);
