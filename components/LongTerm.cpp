@@ -76,7 +76,7 @@ bool LongTerm::FillZeQueue() {
 	b_address_t ramProgramBase;
 	Process* p;
 
-	while (!ramFull)
+	while (!ramFull && !newQueue->empty())
 	{
 
 		p = newQueue->front();
@@ -117,11 +117,6 @@ bool LongTerm::FillZeQueue() {
 
 			//SET RAM ADDRESS used here using setprogrambase for now **************
 			p->SetProgramBase(ramProgramBase);
-
-
-			cout << "Process " << p->GetID() << " moved to RAM. " 
-				 << "Start = " << ramProgramBase << ", "
-				 << "End = " << (ramProgramBase + p->GetProgramEnd() - 1) << endl;
 		}
 		else
 			ramFull = true;
