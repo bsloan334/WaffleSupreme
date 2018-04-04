@@ -33,16 +33,16 @@ class LongTerm {
 
    private:
       struct BlankSpace {
-         size_t instructionSize;
-         size_t startAddress;
-         BlankSpace(size_t start, size_t instructSize) :
+         i_size_t instructionSize;
+         b_address_t startAddress;
+         BlankSpace(b_address_t start, i_size_t instructSize) :
                startAddress(start), instructionSize(instructSize) {}
       };
 
       struct UsedSpace {
-         size_t begin;
-         size_t end;
-         UsedSpace(size_t beg, size_t en) : begin(beg), end(en) {}
+         b_address_t begin;
+         b_address_t end;
+         UsedSpace(b_address_t beg, b_address_t en) : begin(beg), end(en) {}
       };
 
 	  // Params passed in from Driver
