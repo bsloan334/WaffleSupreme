@@ -49,8 +49,30 @@ public:
 
 	Section* FirstAvailableSection(size_t instrNbr);
 
+
+	void printAvailableSpace()
+	{
+		b_size_t totalRamUsage = DEFAULT_RAM;
+		double totalRam = DEFAULT_RAM;
+
+		cout << "RAM usage stats..." << endl;
+		for ( list<Section*>::iterator itr = blankSpaces.begin();
+			  itr != blankSpaces.end();
+			  itr++)
+		{
+			cout << dec << "  blank space from " << WORD*(*itr)->first << " to " << WORD*(*itr)->last + 3 << endl;
+			totalRamUsage -= ( (*itr)->last - (*itr)->first ) * WORD;
+		}
+
+		cout << dec << totalRamUsage << " out of " << DEFAULT_RAM << " bytes used." << endl;
+		cout << "RAM is " << ( (double)totalRamUsage / totalRam ) * 100 << "% full" << endl; 
+	}
+
+
 private:
 	b_size_t size;
 	vector<byte_t> storage;
-	vector<Section*> blankSpaces;
+	list<Section*> blankSpaces;
+
+	void InsertSpace(Section* space); // inserts a space in the blankSpaces list in a way that keeps the list ordered
 };
