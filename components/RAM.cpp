@@ -5,23 +5,23 @@
 using namespace std;
 
 /*** Allocation functions ***********************************************/
-int RAM::Allocate(byte_t data, int index) {
-	int address = index;
+b_address_t RAM::Allocate(byte_t data, b_address_t index) {
+	b_address_t address = index;
 
 	if (size > index) {
 		storage.at(index) = data;
 	}
 	else {
 		throw "Invalid allocaion at: " + to_string(index) + ".";
-		address = -1;   // essentially NULL address is returned
+		address = NULL_ADDRESS;
 	}
 
 	return address;
 }
 
-int RAM::Allocate(instruction_t data, int index) {
+b_address_t RAM::Allocate(instruction_t data, b_address_t index) {
 	byte_t temp = 0;
-	int address = -1;
+	b_address_t address = NULL_ADDRESS;
 
 	temp = byte_t((data & 0xFF000000) >> (8 * 3));
 	address = Allocate(temp, index);                // instr's address is location of first byte
@@ -38,12 +38,12 @@ int RAM::Allocate(instruction_t data, int index) {
 	return address;
 }
 
-int RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
+b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 	bool chunkInserted = false;
 	bool sufficientSpace = true;
-	size_t index;
-	size_t startIndex;
-	size_t size = instructions->size();
+	b_address_t index;
+	b_address_t startIndex;
+	i_size_t size = instructions->size();
 	Section* sect;
 
 	while (!chunkInserted && sufficientSpace)
@@ -90,13 +90,13 @@ int RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 		}
 	}
 
-	return startIndex;	// Returns the effective base
+	return startIndex;	// Returns the effective base (byte addressed)
 }
 
 /*** Deallocation functions **********************************************/
 
 
-void RAM::Deallocate(int startIndex, size_t length)
+void RAM::Deallocate(b_address_t startIndex, b_size_t length)
 {
 	Section* prevSect;
 	Section* currentSect;
@@ -135,7 +135,7 @@ void RAM::Deallocate(int startIndex, size_t length)
 	}
 }
 
-instruction_t RAM::GetInstruction(int index) {
+instruction_t RAM::GetInstruction(b_address_t index) {
 	instruction_t instruct = 0;
 	instruct |= ((instruction_t)storage[index + 0]) << (8 * 3); // Shift 3 bytes
 	instruct |= ((instruction_t)storage[index + 1]) << (8 * 2);
@@ -147,15 +147,15 @@ instruction_t RAM::GetInstruction(int index) {
 }
 
 /*** MMU functions ***********************************************************/
-RAM::Section* RAM::FirstAvailableSection(size_t instrNbr)
+RAM::Section* RAM::FirstAvailableSection(i_size_t instrNbr)
 {
-	for (int i = 0; i < blankSpaces.size(); i++)
+	for (i_address_t i = 0; i < blankSpaces.size(); i++)
 	{
 		Section* s = blankSpaces.at(i);
-		size_t spaceSize = s->last - s->first;
+		i_size_t spaceSize = s->last - s->first;
 		// Make sure section is big enough to fit given number of instructions
 		//		AND that another process has not flagged it to enter it
-		if (instrNbr <= spaceSize && s->status != FLAGGED)
+		if (instrNbr <= spaceSize && s->status == FREE)
 			return s;
 	}
 	
