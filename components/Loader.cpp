@@ -59,17 +59,7 @@ void Loader::LoadJobs(string jobSrcFile)
 
 				process = new Process(jobID, programSize, priority,
 					inBufferSize, outBufferSize, tempBufferSize);
-
-				inBufferBase = programBase + programSize;
-				outBufferBase = inBufferBase + inBufferSize;
-				tempBufferBase = outBufferBase + outBufferSize;
-
 				process->SetProgramBase(programBase);
-				process->AssignInputBase(inBufferBase);
-				process->AssignOutputBase(outBufferBase);
-				process->AssignTempBase(tempBufferBase);
-
-				process->SetFullProgramSize(tempBufferBase + tempBufferSize);
 
 				pcb->AddProcess(process);
 				newQueue->push(process);
@@ -84,7 +74,7 @@ void Loader::LoadJobs(string jobSrcFile)
 		/*** Case 2: Line is an instruction. Insert into next available space in Disk ***/
         else
         { 
-            int a = disk->Allocate(ConvertHexToDec(line));
+            b_address_t a = disk->Allocate(ConvertHexToDec(line));
             if(atProgramBase == true)
             {   
                 atProgramBase = false;
