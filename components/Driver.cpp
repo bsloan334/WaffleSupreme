@@ -13,6 +13,8 @@
 
 using namespace std;
 
+void PrintOutput(Process* p, RAM* ram);
+
 int main(int argc, char* argv[])
 {
 	cout << "Status: Compiled Sucessfully." << endl;
@@ -30,17 +32,20 @@ int main(int argc, char* argv[])
 
 	CPU cpu = CPU(&ram, 1);			     // CPU (id=1)
 	Loader loader = Loader(&disk, &pcb, &newQueue);
-	loader.LoadJobs(jobFile);			 // Load jobs into Disk
+	loader.LoadJobs(jobFile);			 // %Load jobs into Disk
 
 	LongTerm longTermSched(&newQueue, &zeQueue, &ram, &disk, &pcb);
-
 	longTermSched.ScheduleJobs(FIFO);
 
 	ShortTerm shortTermSched(&zeQueue, &longTermSched, &cpu);
+	// Takes the first process on zeQueue (ready queue) and
+	//   executes process by calling dispatcher
 
 	while ( longTermSched.FillZeQueue() == true )
 	{
-		while ( shortTermSched.RunNextProcess() == true );
+		ram.printAvailableSpace();
+		while ( shortTermSched.RunNextProcess() == true )
+			ram.printAvailableSpace();
 	}
 
 	return EXIT_SUCCESS;
