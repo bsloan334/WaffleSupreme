@@ -1,4 +1,5 @@
 #include <string>
+#include <cassert>
 
 #include "RAM.hpp"
 
@@ -38,6 +39,17 @@ b_address_t RAM::Allocate(instruction_t data, b_address_t index) {
 	return address;
 }
 
+instruction_t RAM::GetInstruction(b_address_t index) {
+	instruction_t instruct = 0;
+	instruct |= ((instruction_t)storage[index + 0]) << (8 * 3); // Shift 3 bytes
+	instruct |= ((instruction_t)storage[index + 1]) << (8 * 2);
+	instruct |= ((instruction_t)storage[index + 2]) << (8 * 1);
+	instruct |= ((instruction_t)storage[index + 3]) << (8 * 0);
+
+	return instruct;
+
+}
+
 b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 	bool chunkInserted = false;
 	bool sufficientSpace = true;
@@ -52,7 +64,7 @@ b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 		
 		// Indicate that RAM is full
 		if (sect == NULL)
-			return -1;
+			return NULL_ADDRESS;
 
 		/*** Critical section: Entry Point ***/
 		sect->status = FLAGGED;					// Attempt to take control of C.S.
@@ -63,16 +75,18 @@ b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 			/*** Critical section: Update section bounds ***/
 			chunkInserted = true;
 			index = sect->first * WORD;
-			sect->first = sect->first + size;	// update lower Section bounds
+			sect->first += size;	            // update lower Section bounds
 
 			/*** Critical section: Exit point (releases unused resources) ***/
 			if (sect->first == sect->last)		// remove a "space" whose size is 0
 			{	bool removed = false;
-				for (int i = 0; !removed && i < blankSpaces.size(); i++)
+				for (list<Section*>::iterator itr = blankSpaces.begin();
+					!removed && itr != blankSpaces.end();
+					itr++)
 				{
-					if (blankSpaces[i] == sect)
+					if (*itr == sect)
 					{
-						blankSpaces.erase(blankSpaces.begin() + i);
+						itr = blankSpaces.erase(itr);
 						removed = true;
 					}
 				}
@@ -82,16 +96,19 @@ b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 
 			// Safe to allocate instruction now
 			startIndex = index;
+			cout << "  Allocating Job " << pid << " to RAM... starting at " << index << ", ";
 			while (!instructions->empty()) {
 				Allocate(instructions->front(), index);
 				index += WORD;
 				instructions->pop();
 			}
+			cout << "ending at " << index - 1 << endl;
 		}
 	}
 
 	return startIndex;	// Returns the effective base (byte addressed)
 }
+
 
 /*** Deallocation functions **********************************************/
 
@@ -106,21 +123,27 @@ void RAM::Deallocate(b_address_t startIndex, b_size_t length)
 	// Case 1: Special case where space to deallocate is at beginning of memory
 	if (startIndex == 0)
 	{
-		Section* sect = new Section;
+		Section* sect = new Section();
 		sect->first = 0;
-		sect->last = length;
+		sect->last = length / WORD - 1;
 		sect->status = FREE;
+
+		InsertSpace(sect);
 	}
 	else
 	{
 		// Case 2: Space to deallocate follows a blank space
-		for (int i = 1; !deallocated && i < blankSpaces.size(); i++)
+		for (list<Section*>::iterator itr = blankSpaces.begin();
+			!deallocated && itr != blankSpaces.end();
+			itr++)
 		{
-			if ((blankSpaces.at(i)->last + 1) * WORD == startIndex)
+			if ( ( (*itr)->last + 1) * WORD == startIndex)
 			{
-				Section* sect = blankSpaces.at(i);
+				Section* sect = *itr;
 				sect->last += length / WORD;
 				sect->status = FREE;
+
+				deallocated = true;
 			}
 		}
 
@@ -129,29 +152,22 @@ void RAM::Deallocate(b_address_t startIndex, b_size_t length)
 		{
 			Section* sect = new Section;
 			sect->first = startIndex / WORD;
-			sect->last = sect->first + length / WORD;
+			sect->last = sect->first + length / WORD - 1;
 			sect->status = FREE;
+
+			InsertSpace(sect);
 		}
 	}
-}
-
-instruction_t RAM::GetInstruction(b_address_t index) {
-	instruction_t instruct = 0;
-	instruct |= ((instruction_t)storage[index + 0]) << (8 * 3); // Shift 3 bytes
-	instruct |= ((instruction_t)storage[index + 1]) << (8 * 2);
-	instruct |= ((instruction_t)storage[index + 2]) << (8 * 1);
-	instruct |= ((instruction_t)storage[index + 3]) << (8 * 0);
-
-	return instruct;
-
 }
 
 /*** MMU functions ***********************************************************/
 RAM::Section* RAM::FirstAvailableSection(i_size_t instrNbr)
 {
-	for (i_address_t i = 0; i < blankSpaces.size(); i++)
+	for (list<Section*>::iterator itr = blankSpaces.begin();
+		itr != blankSpaces.end();
+		itr++)
 	{
-		Section* s = blankSpaces.at(i);
+		Section* s = *itr;
 		i_size_t spaceSize = s->last - s->first;
 		// Make sure section is big enough to fit given number of instructions
 		//		AND that another process has not flagged it to enter it
@@ -162,7 +178,76 @@ RAM::Section* RAM::FirstAvailableSection(i_size_t instrNbr)
 	return NULL;		// No available space found
 }
 
+void RAM::InsertSpace(Section* space)
+{
+	// No blank spaces. Insert space as only element
+	if (blankSpaces.empty())
+	{	blankSpaces.push_front(space);
 
+	} else
+	{
+		// Try to insert space at the beginning or middle of blankSpaces list
+		bool inserted = false;
+		for (list<Section*>::iterator itr = blankSpaces.begin();
+			!inserted && itr != blankSpaces.end();
+			itr++)
+		{
+			if ((*itr)->first > space->first)
+			{
+				blankSpaces.insert(itr, space);
+				inserted = true;
+
+				// Check bounds of inserted space and current space (*itr)
+				assert( space->last < (*itr)->first ); // If this throws assertion, something went wrong somewhere else
+				
+				// Concatenate spaces if appropriate
+				if (space->last != 0 && space->last == (*itr)->first - 1)
+				{
+					space->last = (*itr)->last;
+					itr = blankSpaces.erase(itr);
+				}
+				
+				itr--;
+				assert(*itr == space);
+
+				if ( itr != blankSpaces.begin() )
+				{	itr--;
+					
+					// Check bounds of inserted space with previous space
+					if (space->first <= (*itr)->last)
+						printAvailableSpace();
+					assert(space->first > (*itr)->last);
+
+					// Concatenate spaces if appropriate
+					if ( (*itr)->last == space->first - 1 )
+					{	
+						(*itr)->last = space->last;
+						itr++;	// (points to space now)
+						itr = blankSpaces.erase(itr);
+					}
+				}
+				
+			}
+		}
+
+		// Beginning/Middle insertion failed, so insert at end of blankSpace list
+		if (!inserted)
+		{
+			blankSpaces.push_back(space);
+			list<Section*>::iterator itr = blankSpaces.begin();
+			while ( *itr != space ) itr++;
+			itr--;							// now points to blank space before "space"
+
+			// Concatenate spaces if appropriate
+			if ( (*itr)->last == space->first - 1 )
+			{	(*itr)->last = space->last;
+				itr++; // (points to space now)
+				itr = blankSpaces.erase(itr);
+			}
+		}
+
+	} // end if-else block
+}
 
 
 string RAM::GetStatus() {
