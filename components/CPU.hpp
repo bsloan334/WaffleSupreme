@@ -46,12 +46,12 @@ class CPU
         // Pointer to process's entry in the PCB
         Process* process;            // pntr to process entry
         RAM* ram;                    // pntr to OS's RAM
-        int* pc;                     // program counter
+        b_address_t* pc;             // program counter
 		int state;                   // process's current state (NEW, READY, RUNNING, WAITING, TERMINATED)
         instruction_t* registers;    // pntr to register array  /***** TO DO - MAKE 16 a Process Constant *****/
-        int outBuffer;               // offset of output buffer
-        int tmpBuffer;               // offset of temp buffer (chache)
-        int programBase;             // abs beginning address of program file
+        b_address_t outBufferBase;   // offset of output buffer
+        b_address_t tmpBufferBase;   // offset of temp buffer (chache)
+        b_address_t programBase;     // abs beginning address of program file
         
 		bool processComplete;		 // Whether or not the terminated process ran to completion
         bool processContinue;		 // Whether or not to continue running process
@@ -62,7 +62,7 @@ class CPU
         
         /*** Private Member Functions *******************************/
         
-        instruction_t Fetch(int address);
+        instruction_t Fetch(b_address_t address);
         // Preconditions:  address is an absolute address within program buffer bounds
         // Postconditions: A copy of value stored at address has been returned
         
@@ -86,7 +86,7 @@ class CPU
         //                   process state has been updated, and
         //                   all instruction fields reset to default values
         
-        int EffectiveAddress(int logicalAddress);
+        b_address_t EffectiveAddress(b_address_t logicalAddress);
         // Preconditions:  effective address in program section
         // Postconditions: effective address is returned
 
