@@ -16,9 +16,10 @@ class LongTerm {
 
 	   LongTerm(queue<Process*>* newQ,
 			    queue<Process*>* zeQ,
-				RAM* r, Disk* d, PCBManager* p) :
+				RAM* r, Disk* d, PCBManager* p,
+				int t) :
 				newQueue(newQ), zeQueue(zeQ),
-				ram(r), disk(d), pcb(p)
+				ram(r), disk(d), pcb(p), scheduleType(t)
 	   {};
       ~LongTerm();
 
@@ -26,7 +27,6 @@ class LongTerm {
       void WaitToReady(); //Move process from wait to ready  
 
 	  // Interface for ShortTerm
-	  void ScheduleJobs(int schedulingType);
 	  bool FillZeQueue();
 	  // Puts as many processes as possible into RAM
 	  //	Takes them off the newQueue and puts them onto zeQueue
@@ -51,12 +51,15 @@ class LongTerm {
 	  RAM* ram;
 	  Disk* disk;
 	  PCBManager* pcb;
+	  int scheduleType;
 
       size_t readyQueueSize = 0;
       instruction_t maxAddress = 0;
       //Might not work because it is wantint to use the "used" from disk.hpp not make a new one ****************
       vector<UsedSpace> used;
       vector<BlankSpace> FindBlankSpaces();
+
+	  Process* GetNextProcess();
 
       bool IsBlank(BlankSpace blank);
       //bool CheckResource(resourceType rType);

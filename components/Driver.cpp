@@ -32,10 +32,9 @@ int main(int argc, char* argv[])
 
 	CPU cpu = CPU(&ram, 1);			     // CPU (id=1)
 	Loader loader = Loader(&disk, &pcb, &newQueue);
-	loader.LoadJobs(jobFile);			 // %Load jobs into Disk
+	loader.LoadJobs(jobFile);			 // Load jobs into Disk
 
-	LongTerm longTermSched(&newQueue, &zeQueue, &ram, &disk, &pcb);
-	longTermSched.ScheduleJobs(FIFO);
+	LongTerm longTermSched(&newQueue, &zeQueue, &ram, &disk, &pcb, FIFO);
 
 	ShortTerm shortTermSched(&zeQueue, &longTermSched, &cpu);
 	// Takes the first process on zeQueue (ready queue) and
@@ -43,7 +42,7 @@ int main(int argc, char* argv[])
 
 	while ( longTermSched.FillZeQueue() == true )
 	{
-		ram.printAvailableSpace();
+		//ram.printAvailableSpace();
 		while ( shortTermSched.RunNextProcess() == true )
 			ram.printAvailableSpace();
 	}

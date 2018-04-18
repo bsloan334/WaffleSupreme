@@ -21,5 +21,4 @@ class ShortTerm{
 	   CPU* targetCPU;
 	   queue<Process*>* zeQueue;
 	   int cpuID;
-	   string outFileName = "JobOutputFile.txt";
 };

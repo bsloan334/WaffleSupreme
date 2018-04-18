@@ -49,10 +49,10 @@ class CPU
         b_address_t* pc;             // program counter
 		int state;                   // process's current state (NEW, READY, RUNNING, WAITING, TERMINATED)
         instruction_t* registers;    // pntr to register array  /***** TO DO - MAKE 16 a Process Constant *****/
-        b_address_t outBufferBase;   // offset of output buffer
-        b_address_t tmpBufferBase;   // offset of temp buffer (chache)
         b_address_t programBase;     // abs beginning address of program file
-        
+		i_size_t programSize;        // nbr of instructions in JOB section
+		Cache* cache;                // pntr to process's cache data
+
 		bool processComplete;		 // Whether or not the terminated process ran to completion
         bool processContinue;		 // Whether or not to continue running process
         
@@ -61,10 +61,6 @@ class CPU
         
         
         /*** Private Member Functions *******************************/
-        
-        instruction_t Fetch(b_address_t address);
-        // Preconditions:  address is an absolute address within program buffer bounds
-        // Postconditions: A copy of value stored at address has been returned
         
         void Decode(instruction_t instr);
         // Preconditions:  instr is an instruction retrieved with fetch
@@ -89,6 +85,14 @@ class CPU
         b_address_t EffectiveAddress(b_address_t logicalAddress);
         // Preconditions:  effective address in program section
         // Postconditions: effective address is returned
+
+		instruction_t Fetch(b_address_t address);
+		// Preconditions:  address is an absolute address within program buffer bounds
+		// Postconditions: A copy of value stored at address has been returned
+
+		void Write(instruction_t data, b_address_t address);
+		// Precondition:   address is within instruction set or cache
+		// Postcondition:  instruction has been written to address
 
 
 		void printRegs()

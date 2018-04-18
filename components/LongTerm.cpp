@@ -6,58 +6,6 @@ LongTerm::~LongTerm() {
 
 }
 
-/*** Schedule all the Jobs in based on some criteria - FIFO or PRIORITY ***/
-void LongTerm::ScheduleJobs(int schedulingType)
-{
-	Process** temp = NULL;
-	size_t arraySize = 0;
-
-	switch (schedulingType)
-	{
-		case FIFO:
-			// Do nothing since jobs in newQueue are already in FIFO priority
-			break;
-
-		case PRIORITY: // DEPRICATED since jobs should remain in newQueue after scheduling
-			arraySize = newQueue->size();
-			temp = new Process*[arraySize];
-
-			// Put queue values into array
-			for (int i = 0; !newQueue->empty() && i < arraySize; i++)
-			{
-				*(temp + i) = newQueue->front();
-				newQueue->pop();
-			}
-
-			// Sort array in ascending order (smaller priority numbers first)
-			for (int end = arraySize; end > 0; end--)
-			{	for (int i = 0; i < end - 1; i++)
-				{
-					Process* p_current = *(temp + i);
-					Process* p_next = *(temp + i + 1);
-					if (p_current->GetPriority() > p_next->GetPriority())
-					{
-						Process* tp = p_current;
-						p_current = p_next;
-						p_next = tp;
-					}
-				}
-			}
-
-			// Put sorted array to zeQueue
-			for (int i = 0; i < arraySize; i++)
-			{
-				Process* p = *(temp + i);
-				p->SetState(NEW);
-				zeQueue->push(p);
-			}
-			break;
-
-		default:
-			cout << "Uh oh...invalid scheduling type :-(";
-	}
-}
-
 /*** Move first Process p in zeQueue from Disk to RAM ***/
 bool LongTerm::FillZeQueue() {
 
@@ -78,8 +26,8 @@ bool LongTerm::FillZeQueue() {
 
 	while (!ramFull && !newQueue->empty())
 	{
-
 		p = newQueue->front();
+		//p = GetNextProcess();
 
 		/*
 			  //Assign a NEW process into a space
@@ -105,17 +53,14 @@ bool LongTerm::FillZeQueue() {
 			  int diskAddressEnd = p->GetProgramEnd();
 
 			  */
-		queue<instruction_t> instrs = disk->ReadInstructionChunk(p->GetProgramBase(), p->GetFullProgramSize());  // Changed this
+		queue<instruction_t> instrs = disk->ReadInstructionChunk(p->GetProgramBase(), p->GetProgramSize());
 		ramProgramBase = ram->AllocateChunk(&instrs, p->GetID());
 
 		if (ramProgramBase >= 0)
 		{
 			newQueue->pop();	// Take process off newQeue and push onto zeQueue
 			zeQueue->push(p);
-
 			p->SetState(READY);
-
-			//SET RAM ADDRESS used here using setprogrambase for now **************
 			p->SetProgramBase(ramProgramBase);
 		}
 		else
@@ -124,6 +69,42 @@ bool LongTerm::FillZeQueue() {
 
 	return true;
 }
+
+/*
+Process* LongTerm::GetNextProcess()
+// Marches through the PCB looking for Processes marked 'NEW'
+//		and adds either the Job with the lowest Job ID or the highest Priority number to ZeQueue
+{
+	Process* p = NULL;
+	bool newProcessFound = false;
+
+	switch (scheduleType)
+	{
+		case FIFO:
+			for (int i = 0; p != NULL && i < pcb->GetSize(); i++)
+				if (pcb->FindProcess(i)->CheckState() == NEW)
+					p = pcb->FindProcess(i);
+			break;
+
+		case PRIORITY:
+			if (pcb->GetSize() > 0)
+			{
+				Process* pNext = pcb->FindProcess(0);
+				for (int i = 1; i < pcb->GetSize(); i++)
+					if (pcb->FindProcess(i)->GetPriority() > pNext->GetPriority())
+						pNext = pcb->FindProcess(i);
+				
+			}
+			break;
+
+		default:
+			cout << "OOPS! Invalid scheduling type passed as param to LongTerm.";
+	}
+
+	return p;
+}
+*/
+
 	/*
 	blankSpaceLocations[i].startAddress += p->GetProgramEnd(); 
 				  //Add to ready queue and update PCB

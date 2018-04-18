@@ -3,6 +3,7 @@
 
 #include "Job.hpp"
 #include "Data.hpp"
+#include "Cache.hpp"
 #include "Types.hpp"
 
 #include <cstdlib>
@@ -36,13 +37,8 @@ class Process
 		{
 			delete [] registers;                      // deallocate registers
 			delete programCounter;
+			delete cache;
 		}
-    
-		//int cpuid = 0;							// Integer index of assigned cpu
-		//State *state;									// State struct object to hold process environment at given time				
-		//Schedule sched;								// Schedule struct object to hold process time requirement and priority
-		//Accounts accounting;
-		//Process *Parent;
 
         int CheckState() { return currentState; }
 		void SetState(int st) {
@@ -56,41 +52,20 @@ class Process
         instruction_t* Registers() { return registers; }
         b_address_t* ProgramCounter() { return programCounter; }
 	
-        // Set locations in Disk/RAM of different program sections
+        // Program Base meta data retrieved or derived from Job File
         b_address_t GetProgramBase() { return programBase; }
-		b_address_t GetProgramEnd() { return programBase + WORD*GetFullProgramSize(); }
-        b_address_t GetInputBase() { return programBase + WORD*GetProgramSize(); }
-        b_address_t GetOutputBase() { return GetInputBase() + WORD*GetInputSize(); }
-        b_address_t GetTempBase() { return GetOutputBase() + WORD*GetOutputSize(); }
-
-		// Get fields from Job and Data
+		b_address_t GetProgramEnd() { return programBase + WORD*GetProgramSize(); }
 		i_size_t GetProgramSize() { return job.GetProgramSize(); }
-		i_size_t GetInputSize() { return data.GetInputBufferSize(); }
-		i_size_t GetOutputSize() { return data.GetOutputBufferSize(); }
-		i_size_t GetTempSize() { return data.GetTempBufferSize(); }
-		i_size_t GetFullProgramSize() {
-			return GetProgramSize() + GetInputSize() + GetOutputSize() + GetTempSize();
-		}
+
+		// Get/Set process's cache
+		Cache* GetCache() { return cache; };
+		void SetCache(Cache* c) { cache = c; }
 		
 		// Other process properties
 		int GetID() { return job.GetProgramID(); }
 		int GetPriority() { return job.GetPriority(); }
 
         void SetProgramBase(b_address_t address) { programBase = address; }
-        //void AssignOutputBase(int oBase) { outputBase = oBase; }
-        //void AssignTempBase(int tBase) { tempBase = tBase; }
-        //void AssignInputBase(int iBase) { inputBase = iBase; }
-		//void SetFullProgramSize(size_t size) { fullProgramSize = size; }
-
-		// Mass refactor functions
-		/*
-		void RefactorSectionBases()
-		{
-			inputBase = programBase + job.GetProgramSize();
-			outputBase = inputBase + data.GetInputBufferSize();
-			tempBase = outputBase + data.GetOutputBufferSize();
-		}
-		*/
 
 
     private:
@@ -98,17 +73,12 @@ class Process
    
         Job job;
         Data data;
+		Cache* cache;
     
         int currentState;                             // By default, state is NEW
         b_address_t* programCounter;                  // Integer offset from programBase
     
 		
         b_address_t programBase = 0;                // Absolute address in RAM of program start
-		/*
-		int inputBase = 0;                          // Offset from programBase
-        int outputBase = 0;                         // Offset from programBase
-        int tempBase = 0;                           // Offset from programBase
-		*/
 
-		//size_t fullProgramSize = 0;
 };
