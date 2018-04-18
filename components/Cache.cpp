@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Cache.hpp"
 
 
@@ -31,7 +32,7 @@ instruction_t Cache::ReadOutputBuff(i_address_t i)
 	return Read(outputOffset + i);
 }
 
-instruction_t Cache::ReadTempBuffer(i_address_t i)
+instruction_t Cache::ReadTempBuff(i_address_t i)
 {
 	assert(i >= 0 && i < tempBuffSize);
 	return Read(tempOffset + i);
@@ -39,6 +40,26 @@ instruction_t Cache::ReadTempBuffer(i_address_t i)
 
 instruction_t Cache::Read(i_address_t i) { return *(buffer + i); }
 // Returns the ith instruction in the given buffer (INSTRUCITON ADDRESSABLE!!!)
+
+/************* Utility functions ****************************/
+void Cache::PrintInput()
+{	std::cout << "Cached Input..." << std::endl;
+	for (int i = 0; i < inputBuffSize; i++)
+		std::cout << ReadInputBuff(i) << std::endl;
+}
+
+void Cache::PrintOutput()
+{	std::cout << "Cached Output..." << std::endl;
+	for (int i = 0; i < outputBuffSize; i++)
+		std::cout << ReadOutputBuff(i) << std::endl;
+}
+
+void Cache::PrintTemp()
+{	std::cout << "Cached Temp..." << std::endl;
+	for (int i = 0; i < tempBuffSize; i++)
+		std::cout << ReadTempBuff(i) << std::endl;
+
+}
 
 /************* Functions for Writing to Buffers *************/
 void Cache::Write(instruction_t instr, i_address_t i)

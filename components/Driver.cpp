@@ -13,7 +13,7 @@
 
 using namespace std;
 
-void PrintOutput(Process* p, RAM* ram);
+bool RunNextProcess(ShortTerm* sched);
 
 int main(int argc, char* argv[])
 {
@@ -27,25 +27,25 @@ int main(int argc, char* argv[])
 	/*** Initialize other modules ***/
 	string jobFile = "JobFile.txt";
 
-	queue<Process*> newQueue;
-	queue<Process*> zeQueue;
-
 	CPU cpu = CPU(&ram, 1);			     // CPU (id=1)
-	Loader loader = Loader(&disk, &pcb, &newQueue);
+	Loader loader = Loader(&disk, &pcb);
 	loader.LoadJobs(jobFile);			 // Load jobs into Disk
 
-	LongTerm longTermSched(&newQueue, &zeQueue, &ram, &disk, &pcb, FIFO);
+	LongTerm longTermSched(&ram, &disk, &pcb, PRIORITY);
 
-	ShortTerm shortTermSched(&zeQueue, &longTermSched, &cpu);
+	ShortTerm shortTermSched(&longTermSched, &cpu);
 	// Takes the first process on zeQueue (ready queue) and
 	//   executes process by calling dispatcher
 
 	while ( longTermSched.FillZeQueue() == true )
 	{
-		//ram.printAvailableSpace();
-		while ( shortTermSched.RunNextProcess() == true )
-			ram.printAvailableSpace();
+		while (RunNextProcess(&shortTermSched));
 	}
 
 	return EXIT_SUCCESS;
+}
+
+bool RunNextProcess(ShortTerm* sched)
+{
+	return sched->RunNextProcess();
 }

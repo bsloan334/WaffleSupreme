@@ -12,13 +12,12 @@ using namespace std;
 
 class ShortTerm{
    public:
-	   ShortTerm(queue<Process*>* zeQ, LongTerm* sched, CPU* target) :
-		   zeQueue(zeQ), scheduler(sched), targetCPU(target) {}
+	   ShortTerm(LongTerm* sched, CPU* target) :
+		   scheduler(sched), targetCPU(target) {}
 	  bool RunNextProcess();
    
    private:
 	   LongTerm* scheduler;
 	   CPU* targetCPU;
-	   queue<Process*>* zeQueue;
 	   int cpuID;
 };

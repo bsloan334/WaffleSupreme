@@ -9,10 +9,8 @@ bool ShortTerm::RunNextProcess()
 	Dispatcher dispatch;
 	bool processRun = false;
 	
-	if (!zeQueue->empty())
+    if ((p = scheduler->GetNextProcess()) != NULL)
 	{
-		p = zeQueue->front();	// WARNING: Critical section not properly handled
-		zeQueue->pop();
 		dispatch.LoadProcessToCPU(p, targetCPU);
 		processRun = true;
 	
