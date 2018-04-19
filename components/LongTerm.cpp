@@ -2,6 +2,8 @@
 
 using namespace std;
 
+extern MMU mmu;
+
 LongTerm::~LongTerm() {
 
 }
@@ -48,7 +50,7 @@ bool LongTerm::FillZeQueue() {
 			  //lock_guard<mutex_> lock(mtx);
 			  //STILL NEED TO MAKE FUNCTIONS: GetDiskAddress() and SetRamAddress() ************************
 			  //IT IS REFERENCED BELOW
-			  //PROBABLY IN THE PCB  OR DISK
+			  //PROBABLY IN THE Process  OR DISK
 			  int diskAddressStart = p->GetProgramBase();
 			  int diskAddressEnd = p->GetProgramEnd();
 
@@ -71,8 +73,41 @@ bool LongTerm::FillZeQueue() {
 }
 
 /*
+PAGING FOR PHASE 2 STARTS HERE
+*/
+
+Mutex mutex;
+void SetLock() { 
+	while (mutex == LOCK) {
+		cout << ("Frame is locked");
+	}
+	mutex = LOCK; 
+}
+void ReleaseLock() { mutex = FREE; }
+
+size_t LongTerm::FrameSize() {
+	SetLock();
+	size_t FreeFrames = mmu.FreeFrameCount();
+	ReleaseLock();
+	return FreeFrames;
+}
+
+void LongTerm::LoadProcess(Process* p, size_t pageNumber) {
+	// Load 4 pages into RAM
+	for (int i = pageNumber; i < (pageNumber + 4); ++i) {
+		if (mmu.ProcessDiskToRam(p, i) ) {    //Implement ProcessDiskToRam in MMU
+			continue;
+		}
+		else {
+			cout << ("No frames are available");
+			return;
+		}
+	}
+
+void 
+/*
 Process* LongTerm::GetNextProcess()
-// Marches through the PCB looking for Processes marked 'NEW'
+// Marches through the Pcb looking for Processes marked 'NEW'
 //		and adds either the Job with the lowest Job ID or the highest Priority number to ZeQueue
 {
 	Process* p = NULL;
@@ -107,7 +142,7 @@ Process* LongTerm::GetNextProcess()
 
 	/*
 	blankSpaceLocations[i].startAddress += p->GetProgramEnd(); 
-				  //Add to ready queue and update PCB
+				  //Add to ready queue and update Process
 				  p->SetState(READY);
 				  zeQueue->push(p);
 				  newQueue->pop();
@@ -168,7 +203,7 @@ ReadyToWait() and WaitToReady() operate off something that has not been implemen
 We need a way to check what type of resource is being used by a process, so that if a process is waiting 
 on that resource, we can switch the process to waiting.
 I have implemented CheckResource() but not GetResourceStatus(). I am not sure if something like this is 
-implemented somewhere else or not. If not, it would probably be a good idea to put this is the PCB
+implemented somewhere else or not. If not, it would probably be a good idea to put this is the Process
 An enum would be nice and should look something like this:
 enum resourceType {
 	NONE,

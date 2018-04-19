@@ -4,6 +4,7 @@
 #include "PCBManager.hpp"
 #include "Disk.hpp"
 #include "RAM.hpp"
+#include "MMU.hpp"
 
 #include <queue>
 
@@ -19,7 +20,7 @@ class LongTerm {
 				RAM* r, Disk* d, PCBManager* p,
 				int t) :
 				newQueue(newQ), zeQueue(zeQ),
-				ram(r), disk(d), pcb(p), scheduleType(t)
+				ram(r), disk(d), p(p), scheduleType(t)
 	   {};
       ~LongTerm();
 
@@ -30,6 +31,18 @@ class LongTerm {
 	  bool FillZeQueue();
 	  // Puts as many processes as possible into RAM
 	  //	Takes them off the newQueue and puts them onto zeQueue
+
+	  /*
+	  THIS IS WHERE PAGING STARTS
+	  */
+
+		size_t FrameSize();
+
+		void LoadProcess(Process* p, size_t pageNumber);
+		bool LoadPage(Process* p, size_t pageNumber);
+		void DumpProcess(Process* p);
+		void DumpFrame(Process* p);
+		int InitialLoad();
 
    private:
       struct BlankSpace {
@@ -50,7 +63,7 @@ class LongTerm {
 	  queue<Process*>* zeQueue;
 	  RAM* ram;
 	  Disk* disk;
-	  PCBManager* pcb;
+	  PCBManager* p;
 	  int scheduleType;
 
       size_t readyQueueSize = 0;

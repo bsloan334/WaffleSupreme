@@ -17,10 +17,6 @@ class MMU {
       size_t FreeFrameCount() {return FreeFrames.size();}
       size_t FrameNumberToIndex(size_t frame);
 
-      //LOcking setters
-      void SetLock() {while (mutex == LOCK) {} mutex = LOCK;}
-      void ReleaseLock() {mutex = FREE;}
-
       void SetFreeFrames();
       void AddFreeFrame(int index){FreeFrames.push(index);};
       void DumpProcess(PCBManager* p);
