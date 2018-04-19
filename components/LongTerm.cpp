@@ -2,7 +2,7 @@
 
 using namespace std;
 
-extern MMU mmu;
+extern mmu mmu;
 
 LongTerm::~LongTerm() {
 
@@ -85,17 +85,17 @@ void SetLock() {
 }
 void ReleaseLock() { mutex = FREE; }
 
-size_t LongTerm::FrameSize() {
+b_size_t LongTerm::FrameSize() {
 	SetLock();
-	size_t FreeFrames = mmu.FreeFrameCount();
+	b_size_t FreeFrames = mmu.FreeFrameCount();
 	ReleaseLock();
 	return FreeFrames;
 }
 
-void LongTerm::LoadProcess(Process* p, size_t pageNumber) {
+void LongTerm::LoadProcess(Process* p, b_size_t pageNumber) {
 	// Load 4 pages into RAM
 	for (int i = pageNumber; i < (pageNumber + 4); ++i) {
-		if (mmu.ProcessDiskToRam(p, i) ) {    //Implement ProcessDiskToRam in MMU
+		if (mmu.ProcessDiskToRam(p, i) ) {    //Implement ProcessDiskToRam in mmu
 			continue;
 		}
 		else {
@@ -104,7 +104,32 @@ void LongTerm::LoadProcess(Process* p, size_t pageNumber) {
 		}
 	}
 
-void 
+	p->SetState(READY);
+	ReadyQueue.AddProcess(p);
+}
+
+void LongTerm::DumpProcess(Process* p) {
+	SetLock();
+	mmu.DumpProcess(p);
+	ReleaseLock();
+}
+
+void LongTerm::DumpFrame(Process* p) {
+	SetLock();
+	mmu.DumpPage(p);
+	ReleaseLock();
+}
+
+int LongTerm::InitialLoad() {	
+	int numberOfJobs = 0;
+	while (!newQueue.empty()) {
+		LoadProcess(newQueue.GetProcess(), 0);
+		numberOfJobs++;
+		newQueue.removeProcess();
+	}
+	return numberofjobs;
+}
+
 /*
 Process* LongTerm::GetNextProcess()
 // Marches through the Pcb looking for Processes marked 'NEW'
@@ -116,18 +141,18 @@ Process* LongTerm::GetNextProcess()
 	switch (scheduleType)
 	{
 		case FIFO:
-			for (int i = 0; p != NULL && i < pcb->GetSize(); i++)
-				if (pcb->FindProcess(i)->CheckState() == NEW)
-					p = pcb->FindProcess(i);
+			for (int i = 0; p != NULL && i < p->GetSize(); i++)
+				if (p->FindProcess(i)->CheckState() == NEW)
+					p = p->FindProcess(i);
 			break;
 
 		case PRIORITY:
-			if (pcb->GetSize() > 0)
+			if (p->GetSize() > 0)
 			{
-				Process* pNext = pcb->FindProcess(0);
-				for (int i = 1; i < pcb->GetSize(); i++)
-					if (pcb->FindProcess(i)->GetPriority() > pNext->GetPriority())
-						pNext = pcb->FindProcess(i);
+				Process* pNext = p->FindProcess(0);
+				for (int i = 1; i < p->GetSize(); i++)
+					if (p->FindProcess(i)->GetPriority() > pNext->GetPriority())
+						pNext = p->FindProcess(i);
 				
 			}
 			break;
@@ -173,7 +198,7 @@ Process* LongTerm::GetNextProcess()
 							used.push_back(UsedSpace(maxAddress, maxAddress + p->GetProgramEnd());
 							maxAddress = maxAddress + (p->GetProgramEnd());
 
-							//add to ready queue and update pcb
+							//add to ready queue and update p
 							cout << ("Process allocated to RAM with the Process ID of " + p->GetID());
 							p->SetState(READY);
 							zeQueue->push(newQueue->front());
@@ -304,9 +329,9 @@ vector<LongTerm::BlankSpace> LongTerm::FindBlankSpaces() {
 
    if(zeQueue->size() > 0) {
       //Go through the list of process and see which one is ready
-      for(int i = 0; i < pcb->GetSize(); i++) {
+      for(int i = 0; i < p->GetSize(); i++) {
 
-		  Process* p = pcb->FindProcess(i);
+		  Process* p = p->FindProcess(i);
 
          //Checks to see if the process has a status of RUNNING, indicating it is in RAM
          if(p->CheckState() == RUNNING){

@@ -43,9 +43,9 @@ void MMU::WriteToDisk(Process* p, size_t pageNumber) {
 	ReleaseLock();
 }
 
-void  DumpProcess(Process* p) {
+void DumpProcess(Process* p) {
    size_t frame;
-   //implement GetPageTableLength, IsValidPage, GetFrame, SetPageTableEntry in p 
+   //implement GetPageTableLength, IsValidPage, GetFrame, SetPageTableEntry in pcb?
    for (int i = (p->GetPageTableLength() - 1); i > 0; i--) {
 		if (p->IsValidPage(i)) {
 			frame = p->GetFrame(i);
@@ -59,10 +59,8 @@ void  DumpProcess(Process* p) {
 
 void DumpPage(Process* p) {
    size_t frame;
-	for (int i = (p->GetPageTableLength() - 1); i > 0; i--)
-	{
-		if (p->IsValidPage(i))
-		{
+	for (int i = (p->GetPageTableLength() - 1); i > 0; i--) {
+		if (p->IsValidPage(i)) {
 			frame = p->GetFrame(i);
 			WritePageToDisk(p, i);
 			p->SetPageTableEntry(i, false, -1);
@@ -87,7 +85,7 @@ instruction_t MMU::GetInstruction(Process* p) {
 		return results;
 	}
 	else {
-		// Page Fault still need to implement. Not sure if tracking page fault is somethign we should do.
+		// Page Fault still need to implement. Not sure if tracking page fault here the right place
 		//p->IncrementPageFaultCount();
 		//p->SetPageFaultStartClock();
 		return -1;

@@ -36,10 +36,10 @@ class LongTerm {
 	  THIS IS WHERE PAGING STARTS
 	  */
 
-		size_t FrameSize();
+		b_size_t FrameSize();
 
-		void LoadProcess(Process* p, size_t pageNumber);
-		bool LoadPage(Process* p, size_t pageNumber);
+		void LoadProcess(Process* p, b_size_t pageNumber);
+		bool LoadPage(Process* p, b_size_t pageNumber);
 		void DumpProcess(Process* p);
 		void DumpFrame(Process* p);
 		int InitialLoad();
