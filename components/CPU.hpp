@@ -2,12 +2,15 @@
 
 #include <cstdlib>
 #include <sstream>
+#include <iostream>
 
 #include "Process.hpp"
 #include "RAM.hpp"
 #include "Types.hpp"
 
 using namespace std;
+
+enum Status{BUSY, IDLE};
 
 class CPU
 {
@@ -31,6 +34,9 @@ class CPU
     
         Process* GetCurrentProcess() const;
         // Postcondition:    ptr to currently running process is returned
+
+		int GetID() { return cpuId; }
+		void printOutput() { std::cout << output.str() << std::endl; }
     
     private:
     
@@ -93,14 +99,6 @@ class CPU
 		void Write(instruction_t data, b_address_t address);
 		// Precondition:   address is within instruction set or cache
 		// Postcondition:  instruction has been written to address
-
-
-		void printRegs()
-		{
-			cout << "REGS:" << endl;
-			for (int i = 0; i < NBR_OF_REGS; i++)
-				cout << hex << "reg " << i << " = " << *(registers + i) << endl;
-		}
 
 };
 

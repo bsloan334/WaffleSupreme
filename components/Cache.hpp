@@ -3,6 +3,10 @@
 #include "Types.hpp"
 
 #include <cassert>
+#include <sstream>
+#include <cstdlib>
+
+using namespace std;
 
 class Cache
 {
@@ -35,6 +39,10 @@ class Cache
 		void PrintInput();
 		void PrintOutput();
 		void PrintTemp();
+
+		void PrintInput(std::stringstream &out);
+		void PrintOutput(std::stringstream &out);
+		void PrintTemp(std::stringstream &out);
 
 	private:
 		instruction_t* buffer;

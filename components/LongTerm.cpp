@@ -9,7 +9,7 @@ LongTerm::~LongTerm() {
 
 /*** Move NEW processes from Disk to RAM so that they are READY processes ***/
 bool LongTerm::FillZeQueue() {
-    
+
 	bool ramFull = false;
 	bool processesAdded = false;
 	b_address_t ramProgramBase;
@@ -23,7 +23,8 @@ bool LongTerm::FillZeQueue() {
 		else if (scheduleType == PRIORITY)
 			p = FirstProcessByPriority();
 		else
-		{	cout << "Invalid scheduling type, not FIFO or PRIORITY" << endl;
+		{
+			//cout << "Invalid scheduling type, not FIFO or PRIORITY" << endl;
 			p = NULL;
 		}
 
@@ -46,23 +47,39 @@ bool LongTerm::FillZeQueue() {
 
 	} while (!ramFull && p != NULL);
 
+	//cout << "zeQueue.size() = " << zeQueue.size() << endl;
+
+
 	/*** Indicates new processes were found in PCB and added to zeQueue ***/
 	return processesAdded;
 }
+
 
 Process* LongTerm::GetNextProcess()
 // Marches through the PCB looking for Processes marked 'NEW'
 //		and adds either the Job with the lowest Job ID or the highest Priority number to ZeQueue
 {
 	Process* p = NULL;
+
+
+	//cout << "zeQueue.size() = " << zeQueue.size() << endl;
 	
-	if (!zeQueue.empty())
+	while (!zeQueue.empty() && p == NULL)    // Continues until either zeQueue is empty or available process has been found
 	{
+
 		p = zeQueue.front();
-		zeQueue.pop();
+
+		assert(p != NULL);
+
+		Mutex* lock = p->GetLock();
+
+		if (lock->TestAndSet() == FREE)		 // Make sure process has not already been claimed before removing if from stack
+			zeQueue.pop();
+		else                                 // Process has been claimed so set p to NULL and move on to next process in zeQeueu
+			p = NULL;
 	}
 
-	return p;
+	return p;		// Note: only returns NULL if there are no more processes loaded into RAMs
 }
 
 Process* LongTerm::FirstProcessByPriority()		/*Returns NEW process with the highest priority*/
@@ -96,6 +113,8 @@ Process* LongTerm::FirstProcessByArrival() 		/*Returns NEW process that arrived 
 	bool found = false;
 	for (pcb->Start(); !found && !pcb->AtEnd(); pcb->Next())
 	{
+		assert(pcb->CurrentProcess() != NULL);
+
 		if (pcb->CurrentProcess()->CheckState() == NEW)
 		{	p = pcb->CurrentProcess();
 			found = true;

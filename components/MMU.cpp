@@ -1,3 +1,6 @@
+/*
+
+
 #include "MMU.hpp"
 #include <mutex>
 
@@ -126,3 +129,4 @@ instruction_t MMU::GetInstruction(Process* p, instruction_t address) {
 		return -1;
 	}
 }
+*/

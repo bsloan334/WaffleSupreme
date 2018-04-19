@@ -4,6 +4,7 @@
 #include "Job.hpp"
 #include "Data.hpp"
 #include "Cache.hpp"
+#include "Mutex.hpp"
 #include "Types.hpp"
 
 #include <cstdlib>
@@ -67,6 +68,10 @@ class Process
 
         void SetProgramBase(b_address_t address) { programBase = address; }
 
+		// Get Process lock for testing/setting
+		//		(No scheduler will use SetLock to wait for a process. Instead
+		//		 scheduler will just move on to the next free process.)
+		Mutex* GetLock() { return &lock; }
 
     private:
         instruction_t* registers;			// 1D array of registers (no buffers) for program data
@@ -74,9 +79,11 @@ class Process
         Job job;
         Data data;
 		Cache* cache;
+
+		Mutex lock;
     
-        int currentState;                             // By default, state is NEW
-        b_address_t* programCounter;                  // Integer offset from programBase
+        int currentState;                           // By default, state is NEW
+        b_address_t* programCounter;                // Integer offset from programBase
     
 		
         b_address_t programBase = 0;                // Absolute address in RAM of program start

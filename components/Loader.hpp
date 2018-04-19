@@ -18,7 +18,7 @@ class Loader
 {
     public:
         //TODO: Loader(Disk *disk)
-		Loader(Disk* disk, PCBManager* pcb, queue<Process*>* newQueue);
+		Loader(Disk* disk, PCBManager* pcb);
         
         void LoadJobs(const string job_src_file);
         // Postcondition:    Jobs from src file have been loaded into memory
@@ -30,7 +30,6 @@ class Loader
         
         Disk* disk;
 		PCBManager* pcb;
-		queue<Process*>* newQueue;
         
         // Information extracted from Job section
         int jobID;

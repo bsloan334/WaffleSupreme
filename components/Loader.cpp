@@ -9,11 +9,10 @@ using namespace std;
 
 string GetFilePath(const string& fileName); // function gets path of current working dir and appends fileName
 
-Loader::Loader(Disk* disk_init, PCBManager* pcb_init, queue<Process*>* newQueue_init)
+Loader::Loader(Disk* disk_init, PCBManager* pcb_init)
 {
     disk = disk_init;
 	pcb = pcb_init;
-	newQueue = newQueue_init;
 }
 
 void Loader::LoadJobs(string jobSrcFile)
@@ -67,7 +66,6 @@ void Loader::LoadJobs(string jobSrcFile)
 				process->SetCache(cache);
 
 				pcb->AddProcess(process);
-				newQueue->push(process);
 
 				cache = NULL;
 				process = NULL;
