@@ -34,8 +34,8 @@ class MMU {
 
       void SetFreeFrames();
       void AddFreeFrame(int index){FreeFrames.push(index);};
-      void DumpProcess(PCBManager* p);
-      void DumpPage(PCBManager* p);
+      void DumpProcess(Process* p);
+      void DumpPage(Process* p);
       void WriteToRam(instruction_t index, instruction_t offset, instruction_t data);
       void SetPageTableEntry(b_size_t entry, bool valid, b_size_t frame);
       void UpdatePageStack(b_size_t pageNumber);
@@ -53,16 +53,16 @@ class MMU {
       int GetPageFaultServiveTime() { return PageFaultServiceTime; }
       long int GetPageFaultTimeClock() { return PageFaultTimeClock; }
 
-      instruction_t GetInstruction(PCBManager* p);
-      instruction_t GetInstruction(PCBManager* p, instruction_t data);
-      vector<instruction_t> GetFrameInfo(PCBManager p);
+      instruction_t GetInstruction(Process* p);
+      instruction_t GetInstruction(Process* p, instruction_t data);
+      vector<instruction_t> GetFrameInfo(Process p);
 
    private:
       queue<b_size_t> FreeFrames;
       Mutex mutex;
       b_size_t SwapPage;
 
-      void WriteToDisk(PCBManager* p, b_size_t SwapPage);
+      void WriteToDisk(Process* p, b_size_t SwapPage);
       
       struct PageTable {
          vector<pair<bool, instruction_t>> pages;
