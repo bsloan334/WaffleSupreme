@@ -5,6 +5,7 @@
 #include "Cache.hpp"
 #include <queue>
 #include <vector>
+#include <chrono>
 
 #define PAGE_SIZE 4*4
 
