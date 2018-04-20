@@ -1,7 +1,6 @@
 #include "LongTerm.hpp"
 
-using namespace std;
-
+using namespace b_
 extern mmu mmu;
 
 LongTerm::~LongTerm() {
@@ -118,6 +117,31 @@ void LongTerm::DumpFrame(Process* p) {
 	SetLock();
 	mmu.DumpPage(p);
 	ReleaseLock();
+}
+
+bool IsFrameThere(Process* p, b_size_t pageNumber) {
+	SetLock();
+	bool isThere = false;
+	there = mmu.ProcessDiskToRam(p, pageNumber);
+	ReleaseLock();
+	return isThere;
+}
+bool LongTerm::LoadPage(Process* p, b_size_t pageNumber) {
+	// Load 1 page into RAM at a time
+	if (!p->IsValidPage(p->GetLastRequestedPage())) {
+		if (IsFrameThere(p, pageNumber)) {
+			p->SetState(READY);
+			return true;
+		}
+		else {
+			cout << "No frame there";
+			return false;
+		}
+	}
+	else {
+		p->set_status(status::READY);
+		return true;
+	}
 }
 
 int LongTerm::InitialLoad() {	
