@@ -1,4 +1,5 @@
 #include "Loader.hpp"
+#include "Cache.hpp"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -8,11 +9,10 @@ using namespace std;
 
 string GetFilePath(const string& fileName); // function gets path of current working dir and appends fileName
 
-Loader::Loader(Disk* disk_init, PCBManager* pcb_init, queue<Process*>* newQueue_init)
+Loader::Loader(Disk* disk_init, PCBManager* pcb_init)
 {
     disk = disk_init;
 	pcb = pcb_init;
-	newQueue = newQueue_init;
 }
 
 void Loader::LoadJobs(string jobSrcFile)
@@ -22,7 +22,12 @@ void Loader::LoadJobs(string jobSrcFile)
     
     string line;				// string to hold current data line
     bool atProgramBase = false;	// Flags whether or not pogramBase is next instr to be inserted
+	bool insideCache = false;	// Flags whether or not instructions should be inserted into cache rather than Disk
+	i_size_t cacheIndex = 0;	// Index of next insertion location in cache
 	ifstream jobInput;			// File reader for job file
+
+	Process* process = NULL;	// pointers to current process and cache being initialized from file
+	Cache* cache = NULL;
 
 	/*** Open Job file ***/
 	jobInput.open(GetFilePath(jobSrcFile));
@@ -36,33 +41,33 @@ void Loader::LoadJobs(string jobSrcFile)
 	/*** Parse Job File ***/
 	while (!jobInput.eof())
 	{
-        Process* process;
-
         getline(jobInput, line);    // First line in job contains job info
-        
-        cout << dec << "  line = " << line << endl;
 		
 		/*** Case 1: Line is a section header. Parse header for process metadata ***/
         if (line.at(0) == '/')
 		{
 			if ( ( line.substr(0, 4) ).compare("// J") == 0 )	// JOB section header
-            {                          
-                ParseJob(line);
+            {   ParseJob(line);
                 atProgramBase = true;            
             }
             else if ( line.substr(0, 4).compare("// D") == 0)	// Data section header
-            {
-                ParseData(line);
+			{   ParseData(line);
+				insideCache = true;
             }
-			else if (line.substr(0, 4).compare("// E") == 0)	// END tag indicating end of process
+			else if (line.substr(0, 4).compare("// E") == 0 	// END tag indicating end of process
+				|| line.substr(0, 3).compare("//E") == 0)		//   at least one case where there is a type on // END tag
 			{
-
+				insideCache = false;
 				process = new Process(jobID, programSize, priority,
 					inBufferSize, outBufferSize, tempBufferSize);
 				process->SetProgramBase(programBase);
+				process->SetCache(cache);
 
 				pcb->AddProcess(process);
-				newQueue->push(process);
+
+				cache = NULL;
+				process = NULL;
+				cacheIndex = 0;
 			}
             else
             {
@@ -72,7 +77,7 @@ void Loader::LoadJobs(string jobSrcFile)
         }
 
 		/*** Case 2: Line is an instruction. Insert into next available space in Disk ***/
-        else
+		else if (!insideCache)
         { 
             b_address_t a = disk->Allocate(ConvertHexToDec(line));
             if(atProgramBase == true)
@@ -82,6 +87,15 @@ void Loader::LoadJobs(string jobSrcFile)
             }        
             
         }
+		/*** Case 3: Line is Data. Insert into cache ***/
+		else
+		{
+			if (cache == NULL)
+				cache = new Cache(inBufferSize, outBufferSize, tempBufferSize);
+
+			cache->Write(ConvertHexToDec(line), cacheIndex);
+			cacheIndex++;
+		}
     
     } // end while
     

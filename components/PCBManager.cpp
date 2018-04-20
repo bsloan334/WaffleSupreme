@@ -1,53 +1,56 @@
 #include "PCBManager.hpp"
 
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
-Process* PCBManager::GetPCBHead()
-{
-	listHead = &PCB.front();
-
-	return listHead;
-}
-
-void PCBManager::AddProcess(Process newProcess)
+void PCBManager::AddProcess(Process* newProcess)
 {
 	PCB.push_back(newProcess);
-	size++;
 }
 
-void PCBManager::RemoveProcess(Process p)
+void PCBManager::RemoveProcess(Process* p)
 {
-	if (&p == listHead)
-	{
-		PCB.remove(p);
-		listHead = &PCB.front();
-	}
-	else
-	{
-		PCB.remove(p);
-	}
-
-	size = PCB.size();
+	PCB.remove(p);
 }
 
 int PCBManager::GetSize()
 {
-	return size;
+	return PCB.size();
 }
 
 Process* PCBManager::FindProcess(int index)
 {
 
-	if (size == 0)
+	if (GetSize() == 0)
 		return NULL;
 
-	list<Process>::const_iterator itr = PCB.cbegin();
-	for (int i = 0; i < size; i++)
+	list<Process*>::iterator itr = PCB.begin();
+	for (int i = 0; i < index; i++)
 		itr++;
 
-	Process p = *itr;
+	return *itr;
+}
 
-	return &p;
+void PCBManager::Start()
+{
+	assert(PCB.size() > 0);
+	itr = PCB.begin();
+}
+
+void PCBManager::Next()
+{
+	assert(itr != PCB.end());
+	itr++;
+}
+
+bool PCBManager::AtEnd()
+{
+	return (itr == PCB.end());
+}
+
+Process* PCBManager::CurrentProcess()
+{
+	return *itr;
 }

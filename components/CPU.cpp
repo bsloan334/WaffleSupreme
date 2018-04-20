@@ -27,23 +27,22 @@ bool CPU::RunProcess(Process* p)
 //                   control returned to CPU,
 //                   process state has been saved
 {
-	output.str("");                            // clear output stream
-
 	process = p;
 	registers = process->Registers();
 	pc = process->ProgramCounter();				// Logical byte address
-	outBufferBase = process->GetOutputBase();	// Absolute byte address
-	tmpBufferBase = process->GetTempBase();		// Absolute byte address
 	programBase = process->GetProgramBase();	// Absolute byte address
+	programSize = process->GetProgramSize();	// Size (number of instructions) of program
+	cache = process->GetCache();
+
+	output << "................. OUTPUT from PID = " << process->GetID() << "..............." << endl;
 
 	/*** Critical Section: Entry Point ***/
 	while (process->CheckState() != RUNNING);  // Make sure that process is in RAM and marked RUNNING by long term
 
 	processContinue = true;
 
+	assert(cache != NULL);
 
-	cout << "Program base is " << programBase << endl;
-	cout << "Output base is " << outBufferBase << endl;
 
 	/*** Critical Section: Run process ***/
 	while (processContinue)
@@ -52,10 +51,6 @@ bool CPU::RunProcess(Process* p)
 		instruction_t instr = Fetch(instrAddress);		// Fetch instruction from RAM
 
 		Decode(instr);								// Decode instruction, updating instruction information fields
-
-		printRegs();
-
-		
 
 		// IO operation: run DMA channel
 		if (type == IO)
@@ -66,18 +61,14 @@ bool CPU::RunProcess(Process* p)
 			Execute();
 	}
 
-	cout << output.str();
-
 	/*** Critical Section: Exit Point ***/
 	process->SetState(TERMINATED);
 
 	// Print process's output cache here
-	cout << "Process " << p->GetID() << " output dump: " << endl;
+	output << "Process " << p->GetID() << " output dump: " << endl;
+	cache->PrintOutput(output);
 
-	for (int i = p->GetOutputBase(); i < p->GetOutputBase() + p->GetOutputSize()*WORD; i+=WORD)
-		cout << hex << ram->GetInstruction(i) << endl;
-
-	ram->Deallocate(process->GetProgramBase(), process->GetFullProgramSize()*WORD);
+	ram->Deallocate(programBase, programSize*WORD);
 
 	return true;
 }
@@ -94,6 +85,8 @@ void CPU::DMA()
 // Preconditions : Current instruction has been decoded and instr is I/O instr
 // Postconditions: Processes I/O operations. When finished, calls signal
 {
+
+	output_StatusOnly << "Performing an I/O operation" << endl;
 
 	instruction_t src1 = EMPTY;
 	instruction_t src2 = EMPTY;
@@ -137,10 +130,10 @@ void CPU::DMA()
 			//   constraint: address limited to temp buffer or output buffer
 
 			if (address != 0) // case 1: address field contains output dest
-				ram->Allocate(src1, EffectiveAddress(address));
+				Write(src1, EffectiveAddress(address));
 
 			else // case 2: reg2 contains output dest
-				ram->Allocate(src1, EffectiveAddress(src2));
+				Write(src1, EffectiveAddress(src2));
 			*pc += WORD;
 			break;
 
@@ -151,22 +144,6 @@ void CPU::DMA()
 	}
 }
 
-instruction_t CPU::Fetch(b_address_t address)
-// Preconditions:  Address is an absolute address with program buffer bounds
-//                   section_id is one of the program section types
-// Postconditions: A copy of value stored at address has been returned
-{
-	if (address < programBase ||
-		address > (programBase + process->GetFullProgramSize()*WORD))
-	{
-		output << ERR_OUT_OF_BOUNDS << endl;
-		processContinue = false;
-		processComplete = false;
-	}
-
-	return ram->GetInstruction(address);
-}
-
 void CPU::Decode(instruction_t instr)
 // Preconditions:  instr is an instruction retrieved with fetch
 // Postconditions: instr has been decoded into following fields
@@ -174,6 +151,9 @@ void CPU::Decode(instruction_t instr)
 //                    (NOTE: some of these will be 0 if not used
 //                    in instruction)
 {
+
+	output_StatusOnly << "Decoding " << hex << instr << endl;
+
 	type = instr & INSTR_TYPE_TEST;    // Get instr type from instr
 	opcode = instr & OPCODE_TEST;    // Get opcode from instr
 
@@ -235,6 +215,8 @@ void CPU::Execute()
 //                   process state has been updated, and
 //                   all instruction fields reset to default values
 {
+	output_StatusOnly << "Executing instruction " << endl;
+
 	instruction_t src1 = EMPTY;
 	instruction_t src2 = EMPTY;
 	instruction_t src3 = EMPTY;
@@ -262,8 +244,6 @@ void CPU::Execute()
 
 	if (type == R)            // Arithmetic instruction format
 	{
-		cout << "opcode=" << hex << opcode << endl;
-
 		switch (opcode)
 		{
 		case MOV:        // move: reg1 = src2
@@ -309,9 +289,9 @@ void CPU::Execute()
 			*pc += WORD;
 			break;
 
-		case SLT:        // set left test: dest =
-			//         1 if src1 < src2
-			//         0 if src1 >= src2
+		case SLT:       // set left test: dest =
+						//         1 if src1 < src2
+						//         0 if src1 >= src2
 			if (src1 < src2)
 				*dst3 = 1;
 			else
@@ -329,7 +309,7 @@ void CPU::Execute()
 		switch (opcode)
 		{
 		case ST:        // set data: copy src1 value to address @ src2
-			ram->Allocate(src1, EffectiveAddress(src2));
+			Write(src1, EffectiveAddress(src2));
 			*pc += WORD;
 			break;
 
@@ -460,15 +440,76 @@ void CPU::Execute()
 	}
 }
 
+instruction_t CPU::Fetch(b_address_t address)
+// Preconditions:  Address is an absolute address within instruction set or cache
+// Postconditions: A copy of value stored at address has been returned either from RAM or from Cache
+{
+	output_StatusOnly << "Fetching data from " << address << endl;
+
+	b_address_t programEnd = programBase + programSize*WORD;
+	bool inInstructionSet = (address >= programBase && address < programEnd);
+	bool inCache = (address >= programEnd && address < programEnd + cache->Size()*WORD);
+
+	instruction_t instr = -1;
+
+	if (inInstructionSet)
+	{
+		instr = ram->GetInstruction(address);
+	}
+
+	else if (inCache)
+	{
+		i_address_t cacheAddress = (address - programBase - programSize*WORD) / WORD;
+		instr = cache->Read(cacheAddress);
+	}
+
+	else
+	{
+		output << ERR_OUT_OF_BOUNDS << endl;
+		processContinue = false;
+		processComplete = false;
+	}
+
+	return instr;
+}
+
+void CPU::Write(instruction_t data, b_address_t address)
+// Precondition:   address is within instruction set or cache
+// Postcondition:  instruction has been written to address
+{
+
+	output_StatusOnly << "Writing " << data << " to " << address << endl;
+
+	/*** Calculate all acceptable program and cache bounds ***/
+	b_address_t programEnd = programBase + programSize*WORD;
+	b_address_t outputStart = programEnd + cache->GetOutputOffset()*WORD;
+	b_address_t outputEnd = outputStart + cache->GetOutputBuffSize()*WORD;
+	b_address_t tempStart = programEnd + cache->GetTempOffset()*WORD;
+	b_address_t tempEnd = tempStart + cache->GetTempBuffSize()*WORD;
+
+	bool inInstructionSet = (address >= programBase && address < programEnd);
+	bool inOutput = (address >= outputStart && address < outputEnd);
+	bool inTemp = (address >= tempStart && address < tempEnd);
+
+	assert(inInstructionSet || inOutput || inTemp);		// Ensure that write is within bounds
+
+	if (inInstructionSet)
+		ram->Allocate(data, address);
+	else
+		cache->Write(data, ((address - programBase) / WORD) - programSize);
+
+}
+
 b_address_t CPU::EffectiveAddress(b_address_t logicalAddress)
 // Preconditions:  effective address in program section
 // Postconditions: effective address is returned
 {
-	int effAddress = programBase + logicalAddress;
+	output_StatusOnly << "Calculating effective address of " << logicalAddress << endl;
+
+	b_address_t effAddress = programBase + logicalAddress;
 
 	// Check precondition
-	assert(effAddress < process->GetProgramBase() ||
-		effAddress >= process->GetProgramBase() + process->GetFullProgramSize());
+	assert(effAddress < programBase || effAddress >= programBase + programSize);
 
 	return effAddress;
 }

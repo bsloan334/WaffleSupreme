@@ -2,12 +2,15 @@
 
 #include <cstdlib>
 #include <sstream>
+#include <iostream>
 
 #include "Process.hpp"
 #include "RAM.hpp"
 #include "Types.hpp"
 
 using namespace std;
+
+enum Status{BUSY, IDLE};
 
 class CPU
 {
@@ -31,6 +34,9 @@ class CPU
     
         Process* GetCurrentProcess() const;
         // Postcondition:    ptr to currently running process is returned
+
+		int GetID() { return cpuId; }
+		void printOutput() { std::cout << output.str() << std::endl; }
     
     private:
     
@@ -49,22 +55,19 @@ class CPU
         b_address_t* pc;             // program counter
 		int state;                   // process's current state (NEW, READY, RUNNING, WAITING, TERMINATED)
         instruction_t* registers;    // pntr to register array  /***** TO DO - MAKE 16 a Process Constant *****/
-        b_address_t outBufferBase;   // offset of output buffer
-        b_address_t tmpBufferBase;   // offset of temp buffer (chache)
         b_address_t programBase;     // abs beginning address of program file
-        
+		i_size_t programSize;        // nbr of instructions in JOB section
+		Cache* cache;                // pntr to process's cache data
+
 		bool processComplete;		 // Whether or not the terminated process ran to completion
         bool processContinue;		 // Whether or not to continue running process
         
         // Stream for storing status statements
         stringstream output;
+		stringstream output_StatusOnly;
         
         
         /*** Private Member Functions *******************************/
-        
-        instruction_t Fetch(b_address_t address);
-        // Preconditions:  address is an absolute address within program buffer bounds
-        // Postconditions: A copy of value stored at address has been returned
         
         void Decode(instruction_t instr);
         // Preconditions:  instr is an instruction retrieved with fetch
@@ -90,13 +93,13 @@ class CPU
         // Preconditions:  effective address in program section
         // Postconditions: effective address is returned
 
+		instruction_t Fetch(b_address_t address);
+		// Preconditions:  address is an absolute address within program buffer bounds
+		// Postconditions: A copy of value stored at address has been returned
 
-		void printRegs()
-		{
-			cout << "REGS:" << endl;
-			for (int i = 0; i < NBR_OF_REGS; i++)
-				cout << hex << "reg " << i << " = " << *(registers + i) << endl;
-		}
+		void Write(instruction_t data, b_address_t address);
+		// Precondition:   address is within instruction set or cache
+		// Postcondition:  instruction has been written to address
 
 };
 
