@@ -1,6 +1,7 @@
 #include "PCBManager.hpp"
 
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -26,8 +27,30 @@ Process* PCBManager::FindProcess(int index)
 		return NULL;
 
 	list<Process*>::iterator itr = PCB.begin();
-	for (int i = 0; i < GetSize(); i++)
+	for (int i = 0; i < index; i++)
 		itr++;
 
+	return *itr;
+}
+
+void PCBManager::Start()
+{
+	assert(PCB.size() > 0);
+	itr = PCB.begin();
+}
+
+void PCBManager::Next()
+{
+	assert(itr != PCB.end());
+	itr++;
+}
+
+bool PCBManager::AtEnd()
+{
+	return (itr == PCB.end());
+}
+
+Process* PCBManager::CurrentProcess()
+{
 	return *itr;
 }
