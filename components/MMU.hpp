@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include "RAM.hpp"
 #include "Disk.hpp"
@@ -5,8 +6,9 @@
 #include "Cache.hpp"
 #include <queue>
 #include <vector>
+#include "PCBManager.hpp"
 
-#define PAGE_SIZE 4*4
+#define PAGE_SIZE 4*WORD
 
 using namespace std;
 
@@ -16,6 +18,10 @@ class MMU {
 
       size_t FreeFrameCount() {return FreeFrames.size();}
       size_t FrameNumberToIndex(size_t frame);
+
+      //LOcking setters
+      void SetLock() {while (mutex == LOCK) {} mutex = LOCK;}
+      void ReleaseLock() {mutex = FREE;}
 
       void SetFreeFrames();
       void AddFreeFrame(int index){FreeFrames.push(index);};
@@ -33,3 +39,5 @@ class MMU {
 
       void WriteToDisk(PCBManager* p, size_t SwapPage);
 }
+
+*/
