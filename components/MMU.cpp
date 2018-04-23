@@ -16,7 +16,7 @@ void MMU::SetFreeFrames() {
    }
 }
 
-size_t MMU::FrameNumberToIndex(size_t frame) { 
+b_size_t MMU::FrameNumberToIndex(b_size_t frame) { 
    return frame * PAGE_SIZE;
 }
 
@@ -30,22 +30,52 @@ void MMU::WriteToRam(instruction_t frame, instruction_t offset, instruction_t da
 
 void MMU::WriteToDisk(Process* p, size_t pageNumber) { 
    //Implement GetFrame in Process
-   size_t frameNumber = p->GetFrame(pageNumber);
-   size_t address = FrameNumberToIndex(frameNumber);
+   b_size_t frameNumber = p->GetFrame(pageNumber);
+   i_size_t address = FrameNumberToIndex(frameNumber);
    //Eliminate any compile error from unused variables
    //Also look into how to get disk address
-   size_t DiskLocation = p->GetDiskAddress() + (pageNumber * (PAGE_SIZE));
+   i_size_t diskLocation = p->GetDiskAddress() + (pageNumber * (PAGE_SIZE));
    SetLock();
    
-   for (int i = 0; i < ((PAGE_SIZE) / (4)); i++, DiskLocation += 4, address += 4) {
-		disk.Allocate(DiskLocation, ram.GetInstruction(address));
+   for (int i = 0; i < ((PAGE_SIZE) / (4)); i++, diskLocation += 4, address += 4) {
+		disk.Allocate(diskLocation, ram.GetInstruction(address));
 	}
 	ReleaseLock();
 }
 
+bool MMU::ProcessDiskToRam(Process* p, b_size_t pageNumber) {
+   b_size_t diskLocation;
+   b_size_t frameNumber;
+   b_size_t frameSize;
+   i_size_t address;
+
+   frameSize = FreeFrames.size();
+   if(frameSize == 0) {
+      return false;
+   }
+   //Checking to see if we are trying to allocate more Ram than we have
+   if (address + (PAGE_SIZE) > ram.size()) {
+      return false;
+   }
+
+   diskLocation = p->GetDiskAddress() + (pageNumber * PAGE_SIZE);
+   frameNumber = FreeFrames.front();
+   address = FrameNUmberToIndex(frameNumber);
+
+   //We can now be sure that the frame can be popped
+   FreeFrames.pop();
+   p->SetPageTableEntry(pageNumber, true, frameNumber);
+   SetLock();
+   //Allocate the frame to main memory now
+   for(int i = 0; i < (PAGE_SIZE)/4; i++, diskLocation+=4, address+=4) {
+      ram.Allocate(address, disk.ReadInstruction((diskLocation)));
+   }
+   ReleaseLock();
+   return true;
+}
+
 void DumpProcess(Process* p) {
-   size_t frame;
-   //implement GetPageTableLength, IsValidPage, GetFrame, SetPageTableEntry in pcb?
+   b_size_t frame;
    for (int i = (p->GetPageTableLength() - 1); i > 0; i--) {
 		if (p->IsValidPage(i)) {
 			frame = p->GetFrame(i);
@@ -58,7 +88,7 @@ void DumpProcess(Process* p) {
 }
 
 void DumpPage(Process* p) {
-   size_t frame;
+   b_size_t frame;
 	for (int i = (p->GetPageTableLength() - 1); i > 0; i--) {
 		if (p->IsValidPage(i)) {
 			frame = p->GetFrame(i);
@@ -72,9 +102,9 @@ void DumpPage(Process* p) {
 
 //Translate Process's program counter to a physical address
 instruction_t MMU::GetInstruction(Process* p) {
-	size_t frame;
-	size_t offset;
-   // Still need to implement - SetLastRequestedPage, getpc, isvalid, getframe
+	b_size_t frame;
+	b_size_t offset;
+   // Still need to implement - GetPC
 	p->SetLastRequestedPage(p->GetProgramCounter() / (PAGE_SIZE));
 	if (p->IsValidPage(p->GetProgramCounter()/(PAGE_SIZE))){
 		frame = p->GetFrame(p->GetProgramCounter() / (PAGE_SIZE));
@@ -85,9 +115,8 @@ instruction_t MMU::GetInstruction(Process* p) {
 		return results;
 	}
 	else {
-		// Page Fault still need to implement. Not sure if tracking page fault here the right place
-		//p->IncrementPageFaultCount();
-		//p->SetPageFaultStartClock();
+		p->IncrementPageFaultCount();
+		p->SetPageFaultStartClock();
 		return -1;
 	}
 }
@@ -95,32 +124,60 @@ instruction_t MMU::GetInstruction(Process* p) {
 
 vector<instruction_t> MMU::GetFrameInfo(Process* p) {
 	int counter = p->GetProgramCounter();
-	size_t offset = (p->GetProgramCounter() % (PAGE_SIZE));
+	b_size_t offset = (p->GetProgramCounter() % (PAGE_SIZE));
 	vector<instruction_t> instructions;
 	instructions.resize(4); //size of 4 instructions in 1 frame
-	for (unsigned int i = 0; i < 4; i++, counter +=4) {
+	for (int i = 0; i < 4; i++, counter +=4) {
 		offset = (counter % (PAGE_SIZE)) / (4);
-		instructions[offset] = (GetInstruction(p,counter));
+		instructions[offset] = (GetInstruction(p, counter));
 	}
 	return instructions;
 }
 
 //Translates a virtual address to a physical address, if one exists
 instruction_t MMU::GetInstruction(Process* p, instruction_t address) {
-	size_t pageNumber = (address / (PAGE_SIZE));
+	b_size_t pageNumber = (address / (PAGE_SIZE));
 	p->SetLastRequestedPage(pageNumber);
 		if (p->IsValidPage(pageNumber))
 		{
-			size_t frame = p->GetFrame(pageNumber);
+			b_size_t frame = p->GetFrame(pageNumber);
 			SetLock();
 			instruction_t results = ram.GetInstruction((frame* (PAGE_SIZE)) + (address % (PAGE_SIZE)));
 			ReleaseLock();
 			return results;
 		}
 		else {
-		// Page Fault still need to implement. Not sure if tracking page fault is somethign we should do.
-		//p->IncrementPageFaultCount();
-		//p->SetPageFaultStartClock();
+		p->IncrementPageFaultCount();
+		p->SetPageFaultStartClock();
 		return -1;
 	}
+
+   b_size_t MMU::GetFrame(b_size_t pageNumber) {
+      return pageTable.pages[pageNumber].second;
+   }
+   
+   pair<bool, b_size_t> MMU::GetPageTableEntry(b_size_t pageNumber) {
+      return pageTable.pages[pageNumber];
+   }
+
+   bool MMU::IsValidPage(b_size_t pageNumber) {
+      if (pageNumber > (pageTable.size() - 1)) {
+         return false;
+      } return pageTable.pages[pageNumber].first;
+   }
+
+   void MMU::SetPageTableEntry(b_size_t entry, bool valid, b_size_t frame) {
+      if(entry < (pageTable.size() - 1)) {
+         pageTable.pages[entry].first = valid;
+         pageTable.pages[entry].second = frame;
+      }
+   }
+
+   void MMU::UpdatePageStack(b_size_t pageNumber) {
+      auto contains = find(PageStack.begin(), PageStack.end(), pageNumber);
+	   if(contains != PageStack.end()) {
+		   PageStack.erase(contains);
+      }
+	   PageStack.push_front(pageNumber);
+   }
 }
