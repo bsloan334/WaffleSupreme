@@ -11,7 +11,7 @@
 #include "LongTerm.h"
 #include "ShortTerm.h"
 #include "Types.h"
-
+#include "Statistics.h"
 using namespace std;
 
 void PrintOutput(Process* p, RAM* ram);
@@ -19,6 +19,7 @@ void PrintOutput(Process* p, RAM* ram);
 int main(int argc, char* argv[])
 {
 	cout << "Status: Compiled Sucessfully." << endl;
+
 
 	/*** Initialize all data structures ***************/
 	PCBManager pcb;		// Empty Process Control Block
@@ -42,12 +43,14 @@ int main(int argc, char* argv[])
 	// Takes the first process on zeQueue (ready queue) and
 	//   executes process by calling dispatcher
 
+	Statistics stats;
+
 	while (longTermSched.FillZeQueue() == true)
 	{
 		ram.printAvailableSpace();
 		while (shortTermSched.RunNextProcess() == true)
 			ram.printAvailableSpace();
 	}
-
+	stats.PrintStats();
 	return EXIT_SUCCESS;
 }

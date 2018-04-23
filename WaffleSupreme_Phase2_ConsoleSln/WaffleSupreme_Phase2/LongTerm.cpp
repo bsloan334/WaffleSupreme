@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "LongTerm.h"
-
+#include "Statistics.h"
 using namespace std;
 
 LongTerm::~LongTerm() {
@@ -12,7 +12,7 @@ void LongTerm::ScheduleJobs(int schedulingType)
 {
 	Process** temp = NULL;
 	size_t arraySize = 0;
-
+	Statistics stats;
 	switch (schedulingType)
 	{
 	case FIFO:
@@ -27,6 +27,8 @@ void LongTerm::ScheduleJobs(int schedulingType)
 		for (int i = 0; !newQueue->empty() && i < arraySize; i++)
 		{
 			*(temp + i) = newQueue->front();
+			Process* cur = *(temp + i);
+			stats.AddStats(0, cur->GetID(), true);
 			newQueue->pop();
 		}
 

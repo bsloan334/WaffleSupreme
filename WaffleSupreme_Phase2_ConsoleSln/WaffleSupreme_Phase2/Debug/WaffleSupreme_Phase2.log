@@ -1,23 +1,16 @@
-﻿  stdafx.cpp
-  WaffleSupreme_Phase2.cpp
+﻿  Statistics.cpp
+  CPU.cpp
+c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme\wafflesupreme_phase2_consolesln\wafflesupreme_phase2\cpu.cpp(87): warning C4018: '<': signed/unsigned mismatch
+c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme\wafflesupreme_phase2_consolesln\wafflesupreme_phase2\cpu.cpp(170): warning C4018: '>': signed/unsigned mismatch
+c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme\wafflesupreme_phase2_consolesln\wafflesupreme_phase2\cpu.cpp(481): warning C4018: '>=': signed/unsigned mismatch
+  Generating Code...
+  Compiling...
   ShortTerm.cpp
-  RAM.cpp
-c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme_phase2\wafflesupreme_phase2\ram.cpp(14): warning C4018: '>': signed/unsigned mismatch
-c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme_phase2\wafflesupreme_phase2\ram.cpp(122): warning C4101: 'currentSect': unreferenced local variable
-c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme_phase2\wafflesupreme_phase2\ram.cpp(121): warning C4101: 'prevSect': unreferenced local variable
-  Process.cpp
-  PCBManager.cpp
   LongTerm.cpp
-c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme_phase2\wafflesupreme_phase2\longterm.cpp(27): warning C4018: '<': signed/unsigned mismatch
-c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme_phase2\wafflesupreme_phase2\longterm.cpp(50): warning C4018: '<': signed/unsigned mismatch
+c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme\wafflesupreme_phase2_consolesln\wafflesupreme_phase2\longterm.cpp(27): warning C4018: '<': signed/unsigned mismatch
+c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme\wafflesupreme_phase2_consolesln\wafflesupreme_phase2\longterm.cpp(52): warning C4018: '<': signed/unsigned mismatch
   Loader.cpp
   Driver.cpp
   Dispatcher.cpp
-  Disk.cpp
-c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme_phase2\wafflesupreme_phase2\disk.cpp(60): warning C4018: '<': signed/unsigned mismatch
-  CPU.cpp
-c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme_phase2\wafflesupreme_phase2\cpu.cpp(77): warning C4018: '<': signed/unsigned mismatch
-c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme_phase2\wafflesupreme_phase2\cpu.cpp(160): warning C4018: '>': signed/unsigned mismatch
-c:\users\ckhar\documents\school\spring 2018\operating systems\wafflesupreme_phase2\wafflesupreme_phase2\cpu.cpp(471): warning C4018: '>=': signed/unsigned mismatch
   Generating Code...
-  WaffleSupreme_Phase2.vcxproj -> C:\Users\ckhar\Documents\School\Spring 2018\Operating Systems\WaffleSupreme_Phase2\Debug\WaffleSupreme_Phase2.exe
+  WaffleSupreme_Phase2.vcxproj -> C:\Users\ckhar\Documents\School\Spring 2018\Operating Systems\WaffleSupreme\WaffleSupreme_Phase2_ConsoleSln\Debug\WaffleSupreme_Phase2.exe
