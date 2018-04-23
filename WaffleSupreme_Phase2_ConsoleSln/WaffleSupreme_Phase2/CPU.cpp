@@ -2,7 +2,7 @@
 #include "CPU.h"
 #include <cstdint>
 #include <cassert>
-
+#include "Statistics.h"
 using namespace std;
 
 /*** Constructor ********************************************/
@@ -27,9 +27,17 @@ bool CPU::RunProcess(Process* p)
 //                   control returned to CPU,
 //                   process state has been saved
 {
+	Statistics stats;
+	statStruct *wait = new statStruct;
 	output.str("");                            // clear output stream
 
 	process = p;
+	//stats.AddStats(0, process->GetID(), false);
+	wait->processID = process->GetID();
+	wait->start = std::chrono::system_clock::now();
+	wait->end = std::chrono::system_clock::now();
+	stats.SetStats(0, process->GetID(), wait, false);
+
 	registers = process->Registers();
 	pc = process->ProgramCounter();				// Logical byte address
 	outBufferBase = process->GetOutputBase();	// Absolute byte address
@@ -45,9 +53,11 @@ bool CPU::RunProcess(Process* p)
 	cout << "Program base is " << programBase << endl;
 	cout << "Output base is " << outBufferBase << endl;
 
+	
 	/*** Critical Section: Run process ***/
 	while (processContinue)
 	{
+
 		b_address_t instrAddress = programBase + *pc;	// Get address of current instr
 		instruction_t instr = Fetch(instrAddress);		// Fetch instruction from RAM
 

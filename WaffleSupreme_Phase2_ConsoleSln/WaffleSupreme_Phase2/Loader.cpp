@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Loader.h"
+#include "Statistics.h"
 
 #include <iostream>
 #include <fstream>
@@ -21,7 +22,8 @@ void Loader::LoadJobs(string jobSrcFile)
 // Postcondition:    Jobs from src file have been loaded into memory
 //                    and stored as Process entries in the PCB
 {
-
+	Statistics stats;
+	statStruct *wait = new statStruct;
 	string line;				// string to hold current data line
 	bool atProgramBase = false;	// Flags whether or not pogramBase is next instr to be inserted
 	ifstream jobInput;			// File reader for job file
@@ -65,6 +67,11 @@ void Loader::LoadJobs(string jobSrcFile)
 
 				pcb->AddProcess(process);
 				newQueue->push(process);
+				//stats.AddStats(0, process->GetID(), true);				
+				wait->processID = process->GetID();
+				wait->start = std::chrono::system_clock::now();
+				wait->end = std::chrono::system_clock::now();
+				stats.SetStats(0, process->GetID(), wait, true);
 			}
 			else
 			{

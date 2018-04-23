@@ -75,6 +75,9 @@
     <ClInclude Include="Cache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Statistics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -113,5 +116,11 @@
     <ClCompile Include="ShortTerm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Statistics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="JobFile.txt" />
   </ItemGroup>
 </Project>
