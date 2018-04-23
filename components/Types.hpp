@@ -3,12 +3,17 @@
 
 #define WORD 4
 #define NULL_ADDRESS -1
+#define CPU_NBR 7
 
-typedef uint32_t instruction_t;
-typedef uint8_t byte_t;
+using namespace std;
 
-typedef int i_address_t;
-typedef int b_address_t;
+typedef uint32_t instruction_t; // Instruction type
+typedef uint8_t byte_t;			// Byte type
 
-typedef size_t i_size_t;
-typedef size_t b_size_t;
+typedef int i_address_t;		// Instruction address type
+typedef int b_address_t;		// Byte address type
+
+typedef size_t i_size_t;		// Instruction size type
+typedef size_t b_size_t;		// Byte size type
+
+typedef size_t f_index_t;		// Frame index type

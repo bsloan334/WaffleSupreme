@@ -2,9 +2,10 @@
 
 using namespace std;
 
-void Dispatcher::LoadProcessToCPU(Process* p, CPU* targetCPU)
+void Dispatcher::LoadProcessToCPU(Process* p, CPU* targetCPU, RAM* ram)
 {
 	p->SetState(RUNNING);
 	targetCPU->RunProcess(p);
-	// print process output here?
+	p->SetState(TERMINATED);
+	ram->Deallocate(p->GetProgramBaseRAM(), p->GetProgramSize()*WORD);
 }
