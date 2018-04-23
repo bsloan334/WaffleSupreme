@@ -5,14 +5,11 @@
 #include <queue>
 #include <list>
 
+#include "Mutex.hpp"
 #include "Types.hpp"
 
 //This makes the ram byte-addressable
 #define DEFAULT_RAM 1024 * WORD
-
-enum Used{ FREE,	// Does not contain active process instruction
-		   FLAGGED	// Process has flagged section in order to write to it {DANGER: This needs to be protected with mutex}
-};
 
 using namespace std;
 
@@ -23,22 +20,21 @@ public:
 	struct Section {	// A section of memory marked either as used or free (addressed as instruction)
 		i_address_t first;
 		i_address_t last;
-		bool status;
-		int pid;			// (only set if status = FLAGGED)
+		Mutex lock;		// FREE by default
+		int pid;
 	};
 
 	RAM(size_t size = DEFAULT_RAM) : size(size), storage(size, 0) {
 		Section* s = new Section();
 		s->first = 0;
 		s->last = size / WORD;
-		s->status = FREE;
 
 		blankSpaces.push_back(s);
 	}
 
 	b_address_t Allocate(byte_t data, b_address_t index);
 	b_address_t Allocate(instruction_t data, b_address_t index);
-	b_address_t AllocateChunk(queue<instruction_t>* instructions, int pid); // WARNING: This will "spin" until there is room in RAM to put it
+	b_address_t AllocateChunk(queue<instruction_t>* instructions, int pid);
 
 	void Deallocate(b_address_t start, b_size_t length);	// dealloc instructions starting at index
 	// startIndex and length are both byte addresses (not instruction address)

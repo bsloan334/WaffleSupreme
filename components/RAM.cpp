@@ -52,13 +52,12 @@ instruction_t RAM::GetInstruction(b_address_t index) {
 
 b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 	bool chunkInserted = false;
-	bool sufficientSpace = true;
 	b_address_t index;
 	b_address_t startIndex;
 	i_size_t size = instructions->size();
 	Section* sect;
 
-	while (!chunkInserted && sufficientSpace)
+	while (!chunkInserted)
 	{
 		sect = FirstAvailableSection(size);
 		
@@ -67,11 +66,8 @@ b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 			return NULL_ADDRESS;
 
 		/*** Critical section: Entry Point ***/
-		sect->status = FLAGGED;					// Attempt to take control of C.S.
-		sect->pid = pid;						// Keeps track of who actually took control
-
-		if (sect->pid == pid)					// Verify the process calling this function has control of C.S.
-		{
+		if(sect->lock.TestAndSet() == FREE)
+		{	
 			/*** Critical section: Update section bounds ***/
 			chunkInserted = true;
 			index = sect->first * WORD;
@@ -79,7 +75,8 @@ b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 
 			/*** Critical section: Exit point (releases unused resources) ***/
 			if (sect->first == sect->last)		// remove a "space" whose size is 0
-			{	bool removed = false;
+			{
+				bool removed = false;
 				for (list<Section*>::iterator itr = blankSpaces.begin();
 					!removed && itr != blankSpaces.end();
 					itr++)
@@ -91,18 +88,18 @@ b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 					}
 				}
 			}
-			else
-				sect->status = FREE;
+			else    // Section bounds updated, so section is now free for use
+				sect->lock.ReleaseLock();
 
 			// Safe to allocate instruction now
 			startIndex = index;
-			cout << "  Allocating Job " << pid << " to RAM... starting at " << index << ", ";
+			//cout << "  Allocating Job " << pid << " to RAM... starting at " << index << ", ";
 			while (!instructions->empty()) {
 				Allocate(instructions->front(), index);
 				index += WORD;
 				instructions->pop();
 			}
-			cout << "ending at " << index - 1 << endl;
+			//cout << "ending at " << index - 1 << endl;
 		}
 	}
 
@@ -126,7 +123,7 @@ void RAM::Deallocate(b_address_t startIndex, b_size_t length)
 		Section* sect = new Section();
 		sect->first = 0;
 		sect->last = length / WORD - 1;
-		sect->status = FREE;
+		sect->lock.ReleaseLock();
 
 		InsertSpace(sect);
 	}
@@ -141,7 +138,7 @@ void RAM::Deallocate(b_address_t startIndex, b_size_t length)
 			{
 				Section* sect = *itr;
 				sect->last += length / WORD;
-				sect->status = FREE;
+				sect->lock.ReleaseLock();
 
 				deallocated = true;
 			}
@@ -153,7 +150,7 @@ void RAM::Deallocate(b_address_t startIndex, b_size_t length)
 			Section* sect = new Section;
 			sect->first = startIndex / WORD;
 			sect->last = sect->first + length / WORD - 1;
-			sect->status = FREE;
+			sect->lock.ReleaseLock();
 
 			InsertSpace(sect);
 		}
@@ -171,7 +168,7 @@ RAM::Section* RAM::FirstAvailableSection(i_size_t instrNbr)
 		i_size_t spaceSize = s->last - s->first;
 		// Make sure section is big enough to fit given number of instructions
 		//		AND that another process has not flagged it to enter it
-		if (instrNbr <= spaceSize && s->status == FREE)
+		if (instrNbr <= spaceSize && s->lock.TestLock() == FREE)
 			return s;
 	}
 	

@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include "RAM.hpp"
 #include "Disk.hpp"
@@ -5,8 +6,9 @@
 #include "Cache.hpp"
 #include <queue>
 #include <vector>
+#include "PCBManager.hpp"
 
-#define PAGE_SIZE 4*4
+#define PAGE_SIZE 4*WORD
 
 using namespace std;
 
@@ -37,3 +39,5 @@ class MMU {
 
       void WriteToDisk(PCBManager* p, size_t SwapPage);
 }
+
+*/
