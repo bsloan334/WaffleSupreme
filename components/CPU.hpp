@@ -7,7 +7,7 @@
 #include "Process.hpp"
 #include "RAM.hpp"
 #include "Types.hpp"
-
+#include "Statistics.hpp"
 using namespace std;
 
 enum Status{BUSY, IDLE};
@@ -17,7 +17,7 @@ class CPU
     public:
     
         /*** Constructor ********************************************/
-        CPU(RAM* ram, int cpuID);
+	CPU(RAM* ram, Statistics* stats, int cpuID);
         // Postconditions: CPU initialized
         
         /*** Public Member Functions ********************************/    
@@ -52,6 +52,7 @@ class CPU
         // Pointer to process's entry in the PCB
         Process* process;            // pntr to process entry
         RAM* ram;                    // pntr to OS's RAM
+	Statistics* stats;			 // pntr to Statistics calculator
         b_address_t* pc;             // program counter
 		int state;                   // process's current state (NEW, READY, RUNNING, WAITING, TERMINATED)
         instruction_t* registers;    // pntr to register array  /***** TO DO - MAKE 16 a Process Constant *****/

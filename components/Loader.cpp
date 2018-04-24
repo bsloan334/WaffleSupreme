@@ -1,5 +1,6 @@
 #include "Loader.hpp"
 #include "Cache.hpp"
+#include "Statistics.hpp"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -9,17 +10,18 @@ using namespace std;
 
 string GetFilePath(const string& fileName); // function gets path of current working dir and appends fileName
 
-Loader::Loader(Disk* disk_init, PCBManager* pcb_init)
+Loader::Loader(Disk* disk_init, PCBManager* pcb_init, Statistics* stats_init)
 {
     disk = disk_init;
 	pcb = pcb_init;
+	stats = stats_init;
 }
 
 void Loader::LoadJobs(string jobSrcFile)
 // Postcondition:    Jobs from src file have been loaded into memory
 //                    and stored as Process entries in the PCB
 {
-    
+	statStruct *wait;			// Create new statStruct to begin saving waiting data
     string line;				// string to hold current data line
     bool atProgramBase = false;	// Flags whether or not pogramBase is next instr to be inserted
 	bool insideCache = false;	// Flags whether or not instructions should be inserted into cache rather than Disk
@@ -66,6 +68,7 @@ void Loader::LoadJobs(string jobSrcFile)
 				process->SetCache(cache);
 
 				pcb->AddProcess(process);
+				stats->SetStats(0, jobID, std::chrono::system_clock::now(), std::chrono::system_clock::now(), true);
 
 				cache = NULL;
 				process = NULL;

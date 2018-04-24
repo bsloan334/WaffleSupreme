@@ -4,6 +4,7 @@
 #include "Process.hpp"
 #include "Disk.hpp"
 #include "Types.hpp"
+#include "Statistics.hpp"
 
 #include <vector>
 #include <cstdlib>
@@ -18,7 +19,7 @@ class Loader
 {
     public:
         //TODO: Loader(Disk *disk)
-		Loader(Disk* disk, PCBManager* pcb);
+		Loader(Disk* disk, PCBManager* pcb, Statistics* stats);
         
         void LoadJobs(const string job_src_file);
         // Postcondition:    Jobs from src file have been loaded into memory
@@ -30,6 +31,7 @@ class Loader
         
         Disk* disk;
 		PCBManager* pcb;
+	Statistics* stats;
         
         // Information extracted from Job section
         int jobID;

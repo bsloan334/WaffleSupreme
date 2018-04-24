@@ -13,12 +13,13 @@
 #include "CPU.hpp"
 #include "Mutex.hpp"
 #include "Types.hpp"
+#include "Statistics.hpp"
 
 using namespace std;
 
 class ShortTerm{
    public:
-	  ShortTerm(LongTerm* sched, CPU* target);
+	  ShortTerm(LongTerm* sched, CPU* target, Statistics* stats_init);
 	  void RunProcesses();
 
 	  // TEMP
@@ -27,6 +28,7 @@ class ShortTerm{
    private:
 	   LongTerm* scheduler;			// Access to the LongTerm Scheduler (This is shared between CPUs)
 	   CPU* targetCPU;				// CPU to use
+       Statistics* stats;
 
 	   // TEMP
 	   stringstream output;

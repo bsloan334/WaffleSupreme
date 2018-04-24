@@ -11,7 +11,7 @@
 #include "LongTerm.hpp"
 #include "ShortTerm.hpp"
 #include "Types.hpp"
-
+#include "Statistics.hpp"
 using namespace std;
 
 void RunThread(ShortTerm** stScheds, int index);
@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
 	PCBManager pcb;		// Empty Process Control Block
 	RAM ram;			// Random Access Memory
 	Disk disk;			// Simulated Disk
+	Statistics stats;	// Statistics calculator
 
 	/*** Initialize other modules ***/
 	string jobFile = "JobFile.txt";
@@ -31,10 +32,10 @@ int main(int argc, char* argv[])
 	/*** Initialize CPUs ***/
 	CPU* processors[CPU_NBR];
 	for (int i = 0; i < CPU_NBR; i++)
-		processors[i] = new CPU(&ram, i);
+		processors[i] = new CPU(&ram, &stats, i);
 
 	/*** Initialize Loader and Load jobs into Disk ***/
-	Loader loader = Loader(&disk, &pcb);
+	Loader loader = Loader(&disk, &pcb,  &stats);
 	loader.LoadJobs(jobFile);			 // Load jobs into Disk
 
 	/*** Initialize Long Term Scheduler ***/
@@ -43,7 +44,7 @@ int main(int argc, char* argv[])
 	/*** Initialize array of Short Term Schedulers, one for each CPU ***/
 	ShortTerm* shortTermScheds[CPU_NBR];
 	for (int i = 0; i < CPU_NBR; i++)
-		shortTermScheds[i] = new ShortTerm(&longTermSched, processors[i]);
+		shortTermScheds[i] = new ShortTerm(&longTermSched, processors[i], &stats));
 
 	/*** Array of thread pointers ***/
 	thread* t[CPU_NBR];
