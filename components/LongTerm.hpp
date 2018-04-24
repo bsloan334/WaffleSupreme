@@ -8,6 +8,8 @@
 #include "MMU.hpp"
 
 #include <queue>
+#include <sstream>
+#include <iostream>
 
 using namespace std;
 
@@ -32,6 +34,9 @@ public:
 	// Interface for ShortTerm to call execute first process in zeQueue
 	Process* GetNextProcess();
 
+	friend ostream& operator << (ostream& o, LongTerm& l) { o << l.out; }
+
+
 private:
 
 	// Params passed in from Driver
@@ -43,4 +48,6 @@ private:
 	Process* FirstProcessByPriority();		/*Returns NEW process with the highest priority*/
 	Process* FirstProcessByArrival();			/*Returns NEW process that arrived first*/
 	Process* ShortestProcess();				/*Returns NEW process that has the shortest instruction set*/
+
+	stringstream out;
 };

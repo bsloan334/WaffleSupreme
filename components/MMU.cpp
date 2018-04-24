@@ -13,6 +13,8 @@ MMU::MMU(RAM* r, Disk* d) : ram(r), disk(d),
 	// Set up the page table
 	for (int i = 0; i < frameBlock.size(); i++)
 		pageTable.push_back(Translation(i));
+
+	PageFaultCount = 0;
 }
 
 /* REMOVING THIS AND JUST MOVING IT'S FUNCTIONALITY TO MMU CONSTRUCTOR
@@ -65,31 +67,13 @@ bool MMU::WriteFrameToRAM(f_index_t frame_i)
 	return pageFound;
 }
 
-/*
-void MMU::WriteToDisk(Process* p, size_t pageNumber) {
-	//Implement GetFrame in Process
-	b_size_t frameNumber = p->GetFrame(pageNumber);
-	i_size_t address = FrameNumberToIndex(frameNumber);
-	//Eliminate any compile error from unused variables
-	//Also look into how to get disk address
-	i_size_t diskLocation = p->GetDiskAddress() + (pageNumber * (PAGE_SIZE));
-	SetLock();
-
-	for (int i = 0; i < ((PAGE_SIZE) / (4)); i++, diskLocation += 4, address += 4) {
-		disk.Allocate(diskLocation, ram.GetInstruction(address));
-	}
-	ReleaseLock();
-}
-*/
 
 void MMU::ServicePageFault(f_index_t frame_i) // Puts frame_i into RAM
 {
 	WriteFrameToRAM(frame_i);
-
-	/* ADD IN A MINUTE
-	IncrementPageFaultCount();
-	SetPageFaultStartClock();
-	*/
+	while (PageFaultCountMutex.TestAndSet() == LOCK);	// Enter critical section
+	PageFaultCount++;									// Critical section
+	PageFaultCountMutex.ReleaseLock();					// Exit critical section
 }
 
 void MMU::Deallocate(Process* p)
@@ -135,35 +119,6 @@ void MMU::PreloadProcess(Process* p) {
 	}
 }
 
-// LATER...
-/*
-void DumpProcess(Process* p) {
-	b_size_t frame;
-	for (int i = (p->GetPageTableLength() - 1); i > 0; i--) {
-		if (p->IsValidPage(i)) {
-			frame = p->GetFrame(i);
-			WritePageToDisk(p, i);
-			p->SetPageTableEntry(i, false, -1);
-			FreeFrames.push(frame);
-			break;
-		}
-	}
-}
-
-void DumpPage(Process* p) {
-	b_size_t frame;
-	for (int i = (p->GetPageTableLength() - 1); i > 0; i--) {
-		if (p->IsValidPage(i)) {
-			frame = p->GetFrame(i);
-			WritePageToDisk(p, i);
-			p->SetPageTableEntry(i, false, -1);
-			FreeFrames.push(frame);
-			break;
-		}
-	}
-}
-*/
-
 //Translate Process's program counter to a physical address
 instruction_t MMU::GetInstruction(b_address_t address) {
 	f_index_t frame_i;
@@ -196,20 +151,6 @@ instruction_t MMU::GetInstruction(b_address_t address) {
 
 	return instr;
 }
-
-/* // MEBBER LATER...
-vector<instruction_t> MMU::GetFrameInfo(Process* p) {
-	int counter = p->GetProgramCounter();
-	b_size_t offset = (p->GetProgramCounter() % (PAGE_SIZE));
-	vector<instruction_t> instructions;
-	instructions.resize(4); //size of 4 instructions in 1 frame
-	for (int i = 0; i < 4; i++, counter += 4) {
-		offset = (counter % (PAGE_SIZE)) / (4);
-		instructions[offset] = (GetInstruction(p, counter));
-	}
-	return instructions;
-}
-*/
 
 /*
 b_size_t MMU::GetFrame(b_size_t pageNumber) {

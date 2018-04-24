@@ -1,11 +1,15 @@
 #pragma once
+#include <sstream>
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <string>
+
 #include "RAM.hpp"
 #include "Disk.hpp"
 #include "Mutex.hpp"
 #include "Cache.hpp"
 #include "Types.hpp"
-#include <vector>
-#include <chrono>
 #include "Process.hpp"
 
 // Number of Pages per process
@@ -27,12 +31,12 @@ public:
 	MMU(RAM* r, Disk* d);
 
 	/********** Interface ***********************************************************************/
-	bool WriteFrameToRAM(f_index_t frame_i);	// Wrtie an entire frame to page in RAM (returns false if there is no room in RAM)
-	void PreloadProcess(Process* p);
-	void Deallocate(Process* p);
-	instruction_t GetInstruction(b_address_t address);
-	//instruction_t GetInstruction(Process* p, instruction_t data); Don't THINK this is needed....we'll see  - Ruth
-	vector<instruction_t> GetFrameInfo(Process p);
+	bool WriteFrameToRAM(f_index_t frame_i);			// Wrtie an entire frame to page in RAM (returns false if there is no room in RAM)
+	void PreloadProcess(Process* p);					// Preload pages
+	void Deallocate(Process* p);						// Deallocate pages
+	instruction_t GetInstruction(b_address_t address);	// Replaces RAM::GetInstruction(b_address_t) for paging
+
+	friend ostream& operator << (ostream& o, MMU& mmu) { o << mmu.out; }
 
 private:
 
@@ -46,14 +50,12 @@ private:
 	vector<Translation> pageTable;
 
 	/********** Structs for Frames (Disk) and Pages (RAM) ***************************************/
-	struct Frame {		// Frames for Disk (IDs are their indices in Frames vector)
-		Mutex mutex;	
+	struct Frame {		// Frames for Disk (IDs are their indices in Frames vector)	
 		i_address_t addressDisk;
 		Frame(i_address_t a = -1) : addressDisk(a){};
 	};
 
 	struct Page {		// Pages for RAM (IDs are their indices in Pages vector)
-		Mutex mutex;
 		i_address_t addressRAM;
 		Page(i_address_t a = INVALID_PAGE) : addressRAM(a){};
 	};
@@ -89,41 +91,10 @@ private:
 	p_size_t FreePageCount() { return FreePages.size(); }					// Returns number of available pages in RAM
 	b_address_t PageIndexToAddress(p_size_t page_i);						// Converts a page index to an instruction address in RAM
 	b_address_t FrameIndexToAddress(f_size_t frame_i);
-
-	// LATER...
-	/*
-	b_size_t GetLastRequestedPage() { return lastRequestedPage; }
-	b_size_t GetPageTableLength() { return pages.size(); }
-	b_size_t PopLRUPage() { b_size_t lru = PageStack.back(); PageStack.pop_back(); return lru; }
-	pair<bool, b_size_t> GetPageTableEntry(b_size_t pageNumber);
-	bool IsValidPage(b_size_t frame);
-	*/
 	
 	void AddFreePage(p_index_t index){ FreePages.push_back(index); };		// Adds the index of a free page to the queue
-	
-	// MEBBE LATER...
-	/*
-	void DumpProcess(Process* p);
-	void DumpPage(Process* p);
-	*/
-	/*
-	void SetPageTableEntry(b_size_t entry, bool valid, b_size_t frame);
-	void UpdatePageStack(b_size_t pageNumber);
-	void SetWaitForMMU(bool mmuWait) { waitForMMU = mmuWait; }
-	void SetLastRequestedPage(b_size_t pageNumber) { lastRequestedPage = pageNumber; }
-	void IncrementPageFaultCount() { PageFaultCount++; }
-	void IncrementPageFaultServiceTime() { PageFaultServiceTime++; }
-	void SetPageFaultStartClock() { PageFaultStartClock = clock_Tick; }
-	void SetPageFaultEndClock() {
-		PageFaultEndClock = clock_Tick;
-		PageFaultTimeClock += (PageFaultEndClock - PageFaultStartClock);
-	}
-	*/
 
-	// MEBBE LATER...
 	int GetPageFaultCount() { return PageFaultCount; }
-	int GetPageFaultServiveTime() { return PageFaultServiceTime; }
-	long int GetPageFaultTimeClock() { return PageFaultTimeClock; }
 
 
 	/********** MMU Data Structures ***************************************************/
@@ -137,6 +108,8 @@ private:
 	b_size_t SwapPage;
 
 	int PageFaultCount;
+	Mutex PageFaultCountMutex;
+
 	long int PageFaultStartClock;
 	long int PageFaultEndClock;
 	long int PageFaultTimeClock;
@@ -149,4 +122,6 @@ private:
 	/******* Frames and Pages ***********************************************************/
 	Frames frameBlock;
 	Pages pageBlock;
+
+	stringstream out;
 };
