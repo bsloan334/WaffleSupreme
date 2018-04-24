@@ -6,7 +6,7 @@
 #include "Process.h"
 #include "RAM.h"
 #include "Types.h"
-
+#include "Statistics.h"
 using namespace std;
 
 class CPU
@@ -14,7 +14,7 @@ class CPU
 public:
 
 	/*** Constructor ********************************************/
-	CPU(RAM* ram, int cpuID);
+	CPU(RAM* ram, Statistics* stats, int cpuID);
 	// Postconditions: CPU initialized
 
 	/*** Public Member Functions ********************************/
@@ -46,6 +46,7 @@ private:
 									  // Pointer to process's entry in the PCB
 	Process* process;            // pntr to process entry
 	RAM* ram;                    // pntr to OS's RAM
+	Statistics* stats;			 // pntr to Statistics calculator
 	b_address_t* pc;             // program counter
 	int state;                   // process's current state (NEW, READY, RUNNING, WAITING, TERMINATED)
 	instruction_t* registers;    // pntr to register array  /***** TO DO - MAKE 16 a Process Constant *****/

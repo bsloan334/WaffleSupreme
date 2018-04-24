@@ -1,16 +1,18 @@
 #include "stdafx.h"
 #include "CPU.h"
+#include "Statistics.h"
 #include <cstdint>
 #include <cassert>
 
 using namespace std;
 
 /*** Constructor ********************************************/
-CPU::CPU(RAM* ram_init, int cpuId_init)
+CPU::CPU(RAM* ram_init, Statistics* stats_init, int cpuId_init)
 // Postconditions: cpu initialized with unique CPU ID
 {
 	cpuId = cpuId_init;
 	ram = ram_init;
+	stats = stats_init;
 	process = NULL;
 	processContinue = false;
 }
@@ -30,6 +32,10 @@ bool CPU::RunProcess(Process* p)
 	output.str("");                            // clear output stream
 
 	process = p;
+	
+	stats->SetStats(0, p->GetID()-1, std::chrono::system_clock::now(), std::chrono::system_clock::now(), false);
+	stats->SetStats(3, p->GetID(), std::chrono::system_clock::now(), std::chrono::system_clock::now(), true);
+
 	registers = process->Registers();
 	pc = process->ProgramCounter();				// Logical byte address
 	outBufferBase = process->GetOutputBase();	// Absolute byte address
@@ -79,6 +85,7 @@ bool CPU::RunProcess(Process* p)
 
 	ram->Deallocate(process->GetProgramBase(), process->GetFullProgramSize()*WORD);
 
+	stats->SetStats(3, p->GetID() - 1, std::chrono::system_clock::now(), std::chrono::system_clock::now(), false);
 	return true;
 }
 

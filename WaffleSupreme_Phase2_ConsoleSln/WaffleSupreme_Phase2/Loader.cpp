@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Loader.h"
+#include "Statistics.h"
 
 #include <iostream>
 #include <fstream>
@@ -10,18 +11,19 @@ using namespace std;
 
 string GetFilePath(const string& fileName); // function gets path of current working dir and appends fileName
 
-Loader::Loader(Disk* disk_init, PCBManager* pcb_init, queue<Process*>* newQueue_init)
+Loader::Loader(Disk* disk_init, PCBManager* pcb_init, queue<Process*>* newQueue_init, Statistics* stats_init)
 {
 	disk = disk_init;
 	pcb = pcb_init;
 	newQueue = newQueue_init;
+	stats = stats_init;
 }
 
 void Loader::LoadJobs(string jobSrcFile)
 // Postcondition:    Jobs from src file have been loaded into memory
 //                    and stored as Process entries in the PCB
 {
-
+	statStruct *wait;			// Create new statStruct to begin saving waiting data
 	string line;				// string to hold current data line
 	bool atProgramBase = false;	// Flags whether or not pogramBase is next instr to be inserted
 	ifstream jobInput;			// File reader for job file
@@ -56,14 +58,16 @@ void Loader::LoadJobs(string jobSrcFile)
 			{
 				ParseData(line);
 			}
-			else if (line.substr(0, 4).compare("// E") == 0)	// END tag indicating end of process
+			else if (line.substr(0, 4).compare("// E") == 0 ||
+						line.substr(0, 3).compare("//E") == 0)	// END tag indicating end of process
 			{
-
 				process = new Process(jobID, programSize, priority,
 					inBufferSize, outBufferSize, tempBufferSize);
 				process->SetProgramBase(programBase);
-
 				pcb->AddProcess(process);
+
+				stats->SetStats(0, jobID, std::chrono::system_clock::now(), std::chrono::system_clock::now(), true);
+
 				newQueue->push(process);
 			}
 			else

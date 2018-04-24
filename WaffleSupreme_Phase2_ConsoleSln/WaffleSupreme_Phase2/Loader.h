@@ -4,6 +4,7 @@
 #include "Process.h"
 #include "Disk.h"
 #include "Types.h"
+#include "Statistics.h"
 
 #include <vector>
 #include <cstdlib>
@@ -18,7 +19,7 @@ class Loader
 {
 public:
 	//TODO: Loader(Disk *disk)
-	Loader(Disk* disk, PCBManager* pcb, queue<Process*>* newQueue);
+	Loader(Disk* disk, PCBManager* pcb, queue<Process*>* newQueue, Statistics* stats);
 
 	void LoadJobs(const string job_src_file);
 	// Postcondition:    Jobs from src file have been loaded into memory
@@ -31,6 +32,7 @@ private:
 	Disk * disk;
 	PCBManager* pcb;
 	queue<Process*>* newQueue;
+	Statistics* stats;
 
 	// Information extracted from Job section
 	int jobID;
