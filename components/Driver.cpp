@@ -11,7 +11,7 @@
 #include "LongTerm.hpp"
 #include "ShortTerm.hpp"
 #include "Types.hpp"
-
+#include "Statistics.hpp"
 using namespace std;
 
 void RunThread(ShortTerm** stScheds, int index);
@@ -26,17 +26,18 @@ int main(int argc, char* argv[])
 	RAM ram;			// Random Access Memory
 	Disk disk;			// Simulated Disk
 	MMU mmu(&ram, &disk);
-
+	Statistics stats;	// Statistics calculator
+	
 	/*** Initialize other modules ***/
 	string jobFile = "JobFile.txt";
 
 	/*** Initialize CPUs ***/
 	CPU* processors[CPU_NBR];
 	for (int i = 0; i < CPU_NBR; i++)
-		processors[i] = new CPU(&mmu, i);
+		processors[i] = new CPU(&mmu, &stats, i);
 
 	/*** Initialize Loader and Load jobs into Disk ***/
-	Loader loader = Loader(&disk, &pcb);
+	Loader loader = Loader(&disk, &pcb, &stats);
 	loader.LoadJobs(jobFile);			 // Load jobs into Disk
 
 	/*** Initialize Long Term Scheduler ***/
@@ -45,7 +46,7 @@ int main(int argc, char* argv[])
 	/*** Initialize array of Short Term Schedulers, one for each CPU ***/
 	ShortTerm* shortTermScheds[CPU_NBR];
 	for (int i = 0; i < CPU_NBR; i++)
-		shortTermScheds[i] = new ShortTerm(&longTermSched, processors[i], &mmu);
+		shortTermScheds[i] = new ShortTerm(&longTermSched, processors[i], &mmu, &stats);
 
 	/*** Array of thread pointers ***/
 	thread* t[CPU_NBR];
@@ -66,7 +67,7 @@ int main(int argc, char* argv[])
 
 	for (int i = 0; i < CPU_NBR; i++)
 		shortTermScheds[i]->PrintSummary();
-
+	stats.PrintStats();
 	return EXIT_SUCCESS;
 }
 

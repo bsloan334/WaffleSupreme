@@ -1,3 +1,5 @@
+
+#include "Statistics.hpp"
 #include <cstdint>
 #include <cassert>
 
@@ -6,11 +8,12 @@
 using namespace std;
 
 /*** Constructor ********************************************/
-CPU::CPU(MMU* mmu_init, int cpuId_init)
+CPU::CPU(MMU* mmu_init, Statistics* stats_init, int cpuId_init)
 // Postconditions: cpu initialized with unique CPU ID
 {
 	cpuId = cpuId_init;
 	mmu = mmu_init;
+	stats = stats_init;
 	process = NULL;
 	processContinue = false;
 }
@@ -28,6 +31,10 @@ bool CPU::RunProcess(Process* p)
 //                   process state has been saved
 {
 	process = p;
+	
+	stats->SetStats(0, p->GetID()-1, std::chrono::system_clock::now(), std::chrono::system_clock::now(), false);
+	stats->SetStats(3, p->GetID(), std::chrono::system_clock::now(), std::chrono::system_clock::now(), true);
+
 	registers = process->Registers();
 	pc = process->ProgramCounter();				// Logical byte address
 	programBase = process->GetProgramBaseDisk();// Absolute byte address
@@ -54,6 +61,7 @@ bool CPU::RunProcess(Process* p)
 			Execute();
 	}
 
+	stats->SetStats(3, p->GetID() - 1, std::chrono::system_clock::now(), std::chrono::system_clock::now(), false);
 	return true;
 }
 
