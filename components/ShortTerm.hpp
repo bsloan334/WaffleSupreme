@@ -19,16 +19,14 @@ using namespace std;
 
 class ShortTerm{
 public:
-	ShortTerm(LongTerm* sched, CPU* target, RAM* ram);
+	ShortTerm(LongTerm* sched, CPU* target, MMU* mmu);
 	void RunProcesses();
-
-	// TEMP
-	void printOutput() { cout << output.str() << endl; }
+	void PrintSummary() { cout << output.str(); }
 
 private:
 	LongTerm* scheduler;		// Access to the LongTerm Scheduler (This is shared between CPUs)
 	CPU* targetCPU;				// CPU to use
-	RAM* ram;					// Access needed in order to deallocate finished processes
+	MMU* mmu;					// Access needed in order to deallocate finished processes
 
 	stringstream output;
 };

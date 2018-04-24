@@ -26,30 +26,22 @@ bool LongTerm::FillZeQueue() {
 			p = ShortestProcess();
 		else
 		{
-			//cout << "Invalid scheduling type, not FIFO or PRIORITY" << endl;
 			p = NULL;
 		}
 
-		/*** If NEW process found, Put that process into RAM, if room ***/
+		/*** If NEW process found, load first four pages into ram, if room ***/
 		if (p != NULL)
 		{
-			queue<instruction_t> instrs = disk->ReadInstructionChunk(p->GetProgramBaseDisk(), p->GetProgramSize());
-			ramProgramBase = ram->AllocateChunk(&instrs, p->GetID());
+			mmu->PreloadProcess(p);			
+			zeQueue.push(p);
+			p->SetState(READY);
+			processesAdded = true;
 
-			if (ramProgramBase != NULL_ADDRESS)
-			{
-				zeQueue.push(p);
-				p->SetState(READY);
-				p->SetProgramBaseRAM(ramProgramBase);
-				processesAdded = true;
-			}
-			else
-				ramFull = true;
 		}
 
-	} while (!ramFull && p != NULL);
+		// NOTE: Not handling case where ram is full
 
-	//cout << "zeQueue.size() = " << zeQueue.size() << endl;
+	} while (!ramFull && p != NULL);
 
 
 	/*** Indicates new processes were found in PCB and added to zeQueue ***/
@@ -62,9 +54,6 @@ Process* LongTerm::GetNextProcess()
 //		and adds either the Job with the lowest Job ID or the highest Priority number to ZeQueue
 {
 	Process* p = NULL;
-
-
-	//cout << "zeQueue.size() = " << zeQueue.size() << endl;
 
 	while (!zeQueue.empty() && p == NULL)    // Continues until either zeQueue is empty or available process has been found
 	{

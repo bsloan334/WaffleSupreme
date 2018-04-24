@@ -52,25 +52,21 @@ instruction_t RAM::GetInstruction(b_address_t index) {
 
 b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 	bool chunkInserted = false;
-	bool sufficientSpace = true;
 	b_address_t index;
 	b_address_t startIndex;
 	i_size_t size = instructions->size();
 	Section* sect;
 
-	while (!chunkInserted && sufficientSpace)
+	while (!chunkInserted)
 	{
 		sect = FirstAvailableSection(size);
-		
+
 		// Indicate that RAM is full
 		if (sect == NULL)
 			return NULL_ADDRESS;
 
 		/*** Critical section: Entry Point ***/
-		sect->status = FLAGGED;					// Attempt to take control of C.S.
-		sect->pid = pid;						// Keeps track of who actually took control
-
-		if (sect->pid == pid)					// Verify the process calling this function has control of C.S.
+		if (sect->lock.TestAndSet() == FREE)
 		{
 			/*** Critical section: Update section bounds ***/
 			chunkInserted = true;
@@ -79,7 +75,8 @@ b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 
 			/*** Critical section: Exit point (releases unused resources) ***/
 			if (sect->first == sect->last)		// remove a "space" whose size is 0
-			{	bool removed = false;
+			{
+				bool removed = false;
 				for (list<Section*>::iterator itr = blankSpaces.begin();
 					!removed && itr != blankSpaces.end();
 					itr++)
@@ -91,18 +88,16 @@ b_address_t RAM::AllocateChunk(queue<instruction_t>* instructions, int pid) {
 					}
 				}
 			}
-			else
-				sect->status = FREE;
+			else    // Section bounds updated, so section is now free for use
+				sect->lock.ReleaseLock();
 
 			// Safe to allocate instruction now
 			startIndex = index;
-			cout << "  Allocating Job " << pid << " to RAM... starting at " << index << ", ";
 			while (!instructions->empty()) {
 				Allocate(instructions->front(), index);
 				index += WORD;
 				instructions->pop();
 			}
-			cout << "ending at " << index - 1 << endl;
 		}
 	}
 
@@ -126,7 +121,7 @@ void RAM::Deallocate(b_address_t startIndex, b_size_t length)
 		Section* sect = new Section();
 		sect->first = 0;
 		sect->last = length / WORD - 1;
-		sect->status = FREE;
+		sect->lock.ReleaseLock();
 
 		InsertSpace(sect);
 	}
@@ -137,11 +132,11 @@ void RAM::Deallocate(b_address_t startIndex, b_size_t length)
 			!deallocated && itr != blankSpaces.end();
 			itr++)
 		{
-			if ( ( (*itr)->last + 1) * WORD == startIndex)
+			if (((*itr)->last + 1) * WORD == startIndex)
 			{
 				Section* sect = *itr;
 				sect->last += length / WORD;
-				sect->status = FREE;
+				sect->lock.ReleaseLock();
 
 				deallocated = true;
 			}
@@ -153,7 +148,7 @@ void RAM::Deallocate(b_address_t startIndex, b_size_t length)
 			Section* sect = new Section;
 			sect->first = startIndex / WORD;
 			sect->last = sect->first + length / WORD - 1;
-			sect->status = FREE;
+			sect->lock.ReleaseLock();
 
 			InsertSpace(sect);
 		}
@@ -171,10 +166,10 @@ RAM::Section* RAM::FirstAvailableSection(i_size_t instrNbr)
 		i_size_t spaceSize = s->last - s->first;
 		// Make sure section is big enough to fit given number of instructions
 		//		AND that another process has not flagged it to enter it
-		if (instrNbr <= spaceSize && s->status == FREE)
+		if (instrNbr <= spaceSize && s->lock.TestLock() == FREE)
 			return s;
 	}
-	
+
 	return NULL;		// No available space found
 }
 
@@ -182,9 +177,11 @@ void RAM::InsertSpace(Section* space)
 {
 	// No blank spaces. Insert space as only element
 	if (blankSpaces.empty())
-	{	blankSpaces.push_front(space);
+	{
+		blankSpaces.push_front(space);
 
-	} else
+	}
+	else
 	{
 		// Try to insert space at the beginning or middle of blankSpaces list
 		bool inserted = false;
@@ -198,35 +195,36 @@ void RAM::InsertSpace(Section* space)
 				inserted = true;
 
 				// Check bounds of inserted space and current space (*itr)
-				assert( space->last < (*itr)->first ); // If this throws assertion, something went wrong somewhere else
-				
+				assert(space->last < (*itr)->first); // If this throws assertion, something went wrong somewhere else
+
 				// Concatenate spaces if appropriate
 				if (space->last != 0 && space->last == (*itr)->first - 1)
 				{
 					space->last = (*itr)->last;
 					itr = blankSpaces.erase(itr);
 				}
-				
+
 				itr--;
 				assert(*itr == space);
 
-				if ( itr != blankSpaces.begin() )
-				{	itr--;
-					
+				if (itr != blankSpaces.begin())
+				{
+					itr--;
+
 					// Check bounds of inserted space with previous space
 					if (space->first <= (*itr)->last)
 						printAvailableSpace();
 					assert(space->first > (*itr)->last);
 
 					// Concatenate spaces if appropriate
-					if ( (*itr)->last == space->first - 1 )
-					{	
+					if ((*itr)->last == space->first - 1)
+					{
 						(*itr)->last = space->last;
 						itr++;	// (points to space now)
 						itr = blankSpaces.erase(itr);
 					}
 				}
-				
+
 			}
 		}
 
@@ -235,12 +233,13 @@ void RAM::InsertSpace(Section* space)
 		{
 			blankSpaces.push_back(space);
 			list<Section*>::iterator itr = blankSpaces.begin();
-			while ( *itr != space ) itr++;
+			while (*itr != space) itr++;
 			itr--;							// now points to blank space before "space"
 
 			// Concatenate spaces if appropriate
-			if ( (*itr)->last == space->first - 1 )
-			{	(*itr)->last = space->last;
+			if ((*itr)->last == space->first - 1)
+			{
+				(*itr)->last = space->last;
 				itr++; // (points to space now)
 				itr = blankSpaces.erase(itr);
 			}

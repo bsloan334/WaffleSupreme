@@ -67,6 +67,8 @@ void Loader::LoadJobs(string jobSrcFile)
 
 				pcb->AddProcess(process);
 
+				cout << hex << "Process " << process->GetID() << " added from " << process->GetProgramBaseDisk() << " to " << process->GetProgramEndDisk() << endl;
+
 				cache = NULL;
 				process = NULL;
 				cacheIndex = 0;

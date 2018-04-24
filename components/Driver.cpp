@@ -15,6 +15,7 @@
 using namespace std;
 
 void RunThread(ShortTerm** stScheds, int index);
+void DiskDump(PCBManager* pcb);
 
 int main(int argc, char* argv[])
 {
@@ -24,6 +25,7 @@ int main(int argc, char* argv[])
 	PCBManager pcb;		// Empty Process Control Block
 	RAM ram;			// Random Access Memory
 	Disk disk;			// Simulated Disk
+	MMU mmu(&ram, &disk);
 
 	/*** Initialize other modules ***/
 	string jobFile = "JobFile.txt";
@@ -31,19 +33,19 @@ int main(int argc, char* argv[])
 	/*** Initialize CPUs ***/
 	CPU* processors[CPU_NBR];
 	for (int i = 0; i < CPU_NBR; i++)
-		processors[i] = new CPU(&ram, i);
+		processors[i] = new CPU(&mmu, i);
 
 	/*** Initialize Loader and Load jobs into Disk ***/
 	Loader loader = Loader(&disk, &pcb);
 	loader.LoadJobs(jobFile);			 // Load jobs into Disk
 
 	/*** Initialize Long Term Scheduler ***/
-	LongTerm longTermSched(&ram, &disk, &pcb, PRIORITY);
+	LongTerm longTermSched(&mmu, &pcb, FIFO);
 
 	/*** Initialize array of Short Term Schedulers, one for each CPU ***/
 	ShortTerm* shortTermScheds[CPU_NBR];
 	for (int i = 0; i < CPU_NBR; i++)
-		shortTermScheds[i] = new ShortTerm(&longTermSched, processors[i]);
+		shortTermScheds[i] = new ShortTerm(&longTermSched, processors[i], &mmu);
 
 	/*** Array of thread pointers ***/
 	thread* t[CPU_NBR];
@@ -60,18 +62,24 @@ int main(int argc, char* argv[])
 		t[i]->join();
 	}
 
+	DiskDump(&pcb);
+
 	for (int i = 0; i < CPU_NBR; i++)
-	{
-		cout << "Sched " << i << endl;
-		shortTermScheds[i]->printOutput();
-		processors[i]->printOutput();
-	}
+		shortTermScheds[i]->PrintSummary();
 
 	return EXIT_SUCCESS;
 }
 
 void RunThread(ShortTerm** stScheds, int index)
 {
-	//cout << "Running processes from zeQueue on scheduler " << index << endl;
 	stScheds[index]->RunProcesses();
+}
+
+void DiskDump(PCBManager* pcb)
+{
+	for (pcb->Start(); !pcb->AtEnd(); pcb->Next())
+	{
+		Process* p = pcb->CurrentProcess();
+		p->GetCache()->PrintOutput();
+	}
 }

@@ -7,6 +7,7 @@
 #include "Process.hpp"
 #include "RAM.hpp"
 #include "Types.hpp"
+#include "MMU.hpp"
 
 using namespace std;
 
@@ -17,7 +18,7 @@ class CPU
 public:
 
 	/*** Constructor ********************************************/
-	CPU(RAM* ram, int cpuID);
+	CPU(MMU* mmu, int cpuID);
 	// Postconditions: CPU initialized
 
 	/*** Public Member Functions ********************************/
@@ -36,7 +37,6 @@ public:
 	// Postcondition:    ptr to currently running process is returned
 
 	int GetID() { return cpuId; }
-	void printOutput() { std::cout << output.str() << std::endl; }
 
 private:
 
@@ -51,7 +51,7 @@ private:
 
 	// Pointer to process's entry in the PCB
 	Process* process;            // pntr to process entry
-	RAM* ram;                    // pntr to OS's RAM
+	MMU* mmu;
 	b_address_t* pc;             // program counter
 	int state;                   // process's current state (NEW, READY, RUNNING, WAITING, TERMINATED)
 	instruction_t* registers;    // pntr to register array  /***** TO DO - MAKE 16 a Process Constant *****/

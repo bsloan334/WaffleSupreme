@@ -3,7 +3,7 @@
 
 #define WORD 4
 #define NULL_ADDRESS -1
-#define CPU_NBR 7
+#define CPU_NBR 5
 
 using namespace std;
 
@@ -17,3 +17,7 @@ typedef size_t i_size_t;		// Instruction size type
 typedef size_t b_size_t;		// Byte size type
 
 typedef size_t f_index_t;		// Frame index type
+typedef size_t f_size_t;		// Frame size type
+
+typedef size_t p_index_t;		// Page index type
+typedef size_t p_size_t;		// Page size type

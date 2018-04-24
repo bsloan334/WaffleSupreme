@@ -3,8 +3,8 @@
 
 using namespace std;
 
-ShortTerm::ShortTerm(LongTerm* sched, CPU* target, RAM* r) :
-scheduler(sched), targetCPU(target), ram(r) {}
+ShortTerm::ShortTerm(LongTerm* sched, CPU* target, MMU* m) :
+scheduler(sched), targetCPU(target), mmu(m) {}
 
 /******
 Logic/Pseudo Code:
@@ -21,7 +21,7 @@ void ShortTerm::RunProcesses()
 	while ((p = scheduler->GetNextProcess()) != NULL)
 	{
 		Dispatcher d;
-		d.LoadProcessToCPU(p, targetCPU, ram);
+		d.LoadProcessToCPU(p, targetCPU, mmu);
 		ps.push(p);
 	}
 

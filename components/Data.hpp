@@ -3,20 +3,20 @@
 #include <cstdlib>
 #include <cstdint>
 
-using namespace std; 
+using namespace std;
 
 class Data
 {
-public: 
+public:
 	Data(int inputSize = 0, int outputSize = 0, int tempSize = 0) //: 
 		//inputBufSize(inputSize),
 		//outputBufSize(outputSize),
 		//tempBufSize(tempSize)
 	{
-        // Initialize Cache
+		// Initialize Cache
 		inputBufSize = inputSize;
-        outputBufSize = outputSize;
-        tempBufSize = tempSize;
+		outputBufSize = outputSize;
+		tempBufSize = tempSize;
 	}
 
 	Data(const Data &d)
@@ -25,22 +25,22 @@ public:
 		outputBufSize = d.outputBufSize;
 		tempBufSize = d.tempBufSize;
 	}
-	
+
 	int GetInputBufferSize() { return inputBufSize; }
 	int GetOutputBufferSize() { return outputBufSize; }
 	int GetTempBufferSize() { return tempBufSize; }
-    
-    /** See note above. It is simplest just to let instruction set change the cache itself ***/
+
+	/** See note above. It is simplest just to let instruction set change the cache itself ***/
 	//void FillOutputBuffer(int input[]) { *outputBuffer = *input; }
 	//void FillTempBuffer(int input[]) { *tempBuffer = *input; }
 
-private: 
+private:
 
-    /** CPU uses sizes to verify data read and written from/to cache is done so in proper bounds **/
+	/** CPU uses sizes to verify data read and written from/to cache is done so in proper bounds **/
 	//int inputBufSize = 0;
 	//int outputBufSize = 0;
 	//int tempBufSize = 0;
-    int inputBufSize;
-    int outputBufSize;
-    int tempBufSize;
+	int inputBufSize;
+	int outputBufSize;
+	int tempBufSize;
 };

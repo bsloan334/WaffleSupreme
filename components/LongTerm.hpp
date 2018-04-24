@@ -5,6 +5,7 @@
 #include "Disk.hpp"
 #include "RAM.hpp"
 #include "Mutex.hpp"
+#include "MMU.hpp"
 
 #include <queue>
 
@@ -15,9 +16,8 @@ enum Scheduler { FIFO, PRIORITY, SJF };
 class LongTerm {
 public:
 
-	LongTerm(RAM* r, Disk* d, PCBManager* p,
-		int t) :
-		ram(r), disk(d), pcb(p), scheduleType(t)
+	LongTerm(MMU* m, PCBManager* p, int t) :
+		mmu(m), pcb(p), scheduleType(t)
 	{};
 	~LongTerm();
 
@@ -36,8 +36,7 @@ private:
 
 	// Params passed in from Driver
 	queue<Process*> zeQueue;
-	RAM* ram;
-	Disk* disk;
+	MMU* mmu;
 	PCBManager* pcb;
 	int scheduleType;
 

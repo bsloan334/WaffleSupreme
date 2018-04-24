@@ -32,7 +32,8 @@ public:
 	queue<instruction_t> ReadInstructionChunk(b_address_t index, i_size_t size);
 
 	string GetStatus();
-	b_size_t GetUsed() { return size; }
+	b_size_t GetUsed() { return used; }
+	b_size_t Size() { return size; }
 
 
 };

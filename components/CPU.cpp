@@ -6,11 +6,11 @@
 using namespace std;
 
 /*** Constructor ********************************************/
-CPU::CPU(RAM* ram_init, int cpuId_init)
+CPU::CPU(MMU* mmu_init, int cpuId_init)
 // Postconditions: cpu initialized with unique CPU ID
 {
 	cpuId = cpuId_init;
-	ram = ram_init;
+	mmu = mmu_init;
 	process = NULL;
 	processContinue = false;
 }
@@ -30,11 +30,9 @@ bool CPU::RunProcess(Process* p)
 	process = p;
 	registers = process->Registers();
 	pc = process->ProgramCounter();				// Logical byte address
-	programBase = process->GetProgramBaseRAM();	// Absolute byte address
+	programBase = process->GetProgramBaseDisk();// Absolute byte address
 	programSize = process->GetProgramSize();	// Size (number of instructions) of program
 	cache = process->GetCache();
-
-	output << "................. OUTPUT from PID = " << process->GetID() << "..............." << endl;
 
 	processContinue = true;
 
@@ -440,7 +438,7 @@ instruction_t CPU::Fetch(b_address_t address)
 
 	if (inInstructionSet)
 	{
-		instr = ram->GetInstruction(address);
+		instr = mmu->GetInstruction(address);
 	}
 
 	else if (inCache)
@@ -473,16 +471,12 @@ void CPU::Write(instruction_t data, b_address_t address)
 	b_address_t tempStart = programEnd + cache->GetTempOffset()*WORD;
 	b_address_t tempEnd = tempStart + cache->GetTempBuffSize()*WORD;
 
-	bool inInstructionSet = (address >= programBase && address < programEnd);
 	bool inOutput = (address >= outputStart && address < outputEnd);
 	bool inTemp = (address >= tempStart && address < tempEnd);
 
-	assert(inInstructionSet || inOutput || inTemp);		// Ensure that write is within bounds
+	assert(inOutput || inTemp);		// Ensure that write is within bounds
 
-	if (inInstructionSet)
-		ram->Allocate(data, address);
-	else
-		cache->Write(data, ((address - programBase) / WORD) - programSize);
+	cache->Write(data, ((address - programBase) / WORD) - programSize);
 
 }
 
